@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm create:*)",
+      "Bash(cp -r \"/c/Users/estev/TevimProjectsS/The Lobby/singapp-temp/\"* \"/c/Users/estev/TevimProjectsS/The Lobby/SingApp/\")",
+      "Bash(cp \"/c/Users/estev/TevimProjectsS/The Lobby/singapp-temp/\".* \"/c/Users/estev/TevimProjectsS/The Lobby/SingApp/\")",
+      "Bash(rm -rf \"/c/Users/estev/TevimProjectsS/The Lobby/singapp-temp\")",
+      "Bash(npm install:*)",
+      "Bash(npx vitest:*)",
+      "Bash(gh auth:*)"
+    ]
+  }
+}
