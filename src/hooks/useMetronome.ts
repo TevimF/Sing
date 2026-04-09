@@ -10,13 +10,12 @@ export function useMetronome(initialBpm = 120) {
   const audioContextRef = useRef<AudioContext | null>(null)
   const nextNoteTimeRef = useRef(0)
   const currentScheduledBeatRef = useRef(0)
+  const notesQueueRef = useRef<{ beat: number; time: number }[]>([])
   const intervalIdRef = useRef<number | null>(null)
 
   const scheduleNote = useCallback((beatNumber: number, time: number) => {
-    // Push the UI update a bit so it matches the audio time loosely
-    setTimeout(() => {
-      setBeat(beatNumber)
-    }, Math.max(0, (time - audioContextRef.current!.currentTime) * 1000))
+    // Add to queue for visual sync
+    notesQueueRef.current.push({ beat: beatNumber, time })
 
     // Max internal gain is 25% to avoid deafening pure square/sine waves
     const peakGain = (volumeRef.current / 100) * 0.25 
@@ -38,15 +37,21 @@ export function useMetronome(initialBpm = 120) {
 
   const tick = useCallback(() => {
     if (!audioContextRef.current) return
-    const scheduleAheadTime = 0.1 // schedule 100ms ahead
+    const scheduleAheadTime = 0.2 // schedule 200ms ahead for mobile stability
     const secondsPerBeat = 60.0 / bpm
-
+ 
     while (nextNoteTimeRef.current < audioContextRef.current.currentTime + scheduleAheadTime) {
       const beatNum = currentScheduledBeatRef.current
       scheduleNote(beatNum, nextNoteTimeRef.current)
       
       currentScheduledBeatRef.current = (beatNum + 1) % 4
       nextNoteTimeRef.current += secondsPerBeat
+    }
+
+    // Precise UI Sync: Check the queue for the beat that should be playing NOW
+    while (notesQueueRef.current.length > 0 && notesQueueRef.current[0].time < audioContextRef.current.currentTime) {
+      setBeat(notesQueueRef.current[0].beat)
+      notesQueueRef.current.shift()
     }
   }, [bpm, scheduleNote])
 
@@ -60,6 +65,7 @@ export function useMetronome(initialBpm = 120) {
       }
       nextNoteTimeRef.current = audioContextRef.current.currentTime + 0.05
       currentScheduledBeatRef.current = 0
+      notesQueueRef.current = [] // clear queue
       setBeat(0) // initial UI beat
       intervalIdRef.current = window.setInterval(tick, 25) // lookahead loop
     } else {
