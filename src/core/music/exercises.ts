@@ -18,8 +18,8 @@ export function createExercise(root: import('../../contracts').Note, intervalTyp
   }
 }
 
-export function createExerciseSet(key: NoteName, intervals: IntervalType[]): ExerciseSet {
-  const rootMidi = midiFromNoteName(key, DEFAULT_OCTAVE)
+export function createExerciseSet(key: NoteName, intervals: IntervalType[], octaveOffset = 0): ExerciseSet {
+  const rootMidi = midiFromNoteName(key, DEFAULT_OCTAVE + octaveOffset)
   const root = noteFromMidi(rootMidi)
   const exercises = intervals.map((interval) => createExercise(root, interval))
 

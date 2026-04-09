@@ -28,6 +28,7 @@ export const IntervalTypeSchema = z.enum([
   'minor_seventh',
   'major_seventh',
   'octave',
+  'vibrato',
 ])
 
 export const INTERVAL_SEMITONES: Record<IntervalType, number> = {
@@ -44,6 +45,7 @@ export const INTERVAL_SEMITONES: Record<IntervalType, number> = {
   minor_seventh: 10,
   major_seventh: 11,
   octave: 12,
+  vibrato: 0,
 }
 
 export const IntervalSchema = z.object({

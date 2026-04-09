@@ -1,0 +1,140 @@
+import { NOTE_NAMES, type NoteName, type IntervalType } from '../../contracts'
+import { useSettingsStore } from '../../stores/settings.store'
+import { useExerciseStore } from '../../stores/exercise.store'
+
+const INTERVAL_GROUPS: { title: string; intervals: { type: IntervalType; label: string; short: string }[] }[] = [
+  {
+    title: 'Basicos',
+    intervals: [
+      { type: 'unison', label: 'Unissono', short: 'U' },
+      { type: 'octave', label: 'Oitava', short: '8a' },
+    ],
+  },
+  {
+    title: 'Tercas',
+    intervals: [
+      { type: 'minor_third', label: '3a menor', short: '3m' },
+      { type: 'major_third', label: '3a maior', short: '3M' },
+    ],
+  },
+  {
+    title: 'Quartas & Quintas',
+    intervals: [
+      { type: 'perfect_fourth', label: '4a justa', short: '4J' },
+      { type: 'perfect_fifth', label: '5a justa', short: '5J' },
+    ],
+  },
+  {
+    title: 'Especiais',
+    intervals: [
+      { type: 'vibrato', label: 'Vibrato', short: '~' },
+    ],
+  },
+]
+
+export function ExerciseSelector() {
+  const { key, setKey } = useSettingsStore()
+  const { exerciseSet, selectedIntervals, octaveOffset, startExercises, reset } = useExerciseStore()
+
+  const toggleInterval = (interval: IntervalType) => {
+    const current = selectedIntervals
+    if (current.includes(interval)) {
+      if (current.length > 1) {
+        useExerciseStore.setState({
+          selectedIntervals: current.filter((i) => i !== interval),
+        })
+      }
+    } else {
+      useExerciseStore.setState({
+        selectedIntervals: [...current, interval],
+      })
+    }
+  }
+
+  const setOctaveOffset = (offset: number) => {
+    useExerciseStore.setState({ octaveOffset: offset })
+  }
+
+  const handleStart = () => {
+    startExercises(key, selectedIntervals)
+  }
+
+  if (exerciseSet) {
+    return (
+      <div className="exercise-selector">
+        <button className="btn btn--secondary" onClick={reset}>
+          Voltar
+        </button>
+      </div>
+    )
+  }
+
+  const octaveLabel = octaveOffset === 0 ? '4' : octaveOffset < 0 ? `${4 + octaveOffset}` : `${4 + octaveOffset}`
+  const rootDisplay = `${key}${octaveLabel}`
+
+  return (
+    <div className="exercise-selector">
+      {/* Key + Octave row */}
+      <div className="exercise-selector__top-row">
+        <div className="exercise-selector__key-group">
+          <label>Tom</label>
+          <select value={key} onChange={(e) => setKey(e.target.value as NoteName)}>
+            {NOTE_NAMES.map((n) => (
+              <option key={n} value={n}>{n}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="exercise-selector__octave-group">
+          <label>Oitava</label>
+          <div className="octave-control">
+            <button
+              className="octave-control__btn"
+              onClick={() => setOctaveOffset(Math.max(-2, octaveOffset - 1))}
+              disabled={octaveOffset <= -2}
+            >
+              −
+            </button>
+            <span className="octave-control__value">{4 + octaveOffset}</span>
+            <button
+              className="octave-control__btn"
+              onClick={() => setOctaveOffset(Math.min(2, octaveOffset + 1))}
+              disabled={octaveOffset >= 2}
+            >
+              +
+            </button>
+          </div>
+        </div>
+
+        <div className="exercise-selector__root-display">
+          <span className="root-note-badge">{rootDisplay}</span>
+        </div>
+      </div>
+
+      {/* Interval groups */}
+      <div className="exercise-selector__intervals">
+        {INTERVAL_GROUPS.map((group) => (
+          <div key={group.title} className="interval-group">
+            <span className="interval-group__title">{group.title}</span>
+            <div className="interval-group__chips">
+              {group.intervals.map(({ type, label }) => (
+                <button
+                  key={type}
+                  className={`chip ${selectedIntervals.includes(type) ? 'chip--active' : ''}`}
+                  onClick={() => toggleInterval(type)}
+                  title={label}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <button className="btn btn--primary" onClick={handleStart} disabled={selectedIntervals.length === 0}>
+        Iniciar Exercicios
+      </button>
+    </div>
+  )
+}

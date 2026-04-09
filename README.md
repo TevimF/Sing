@@ -1,73 +1,75 @@
-# React + TypeScript + Vite
+# Sing
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Treinador vocal em tempo real no navegador. Detecta o pitch da sua voz pelo microfone e guia voce por exercicios de intervalos musicais.
 
-Currently, two official plugins are available:
+## Como usar
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+### 1. Abrir o app
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Acesse `http://localhost:5173` no navegador (Chrome recomendado).
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### 2. Ativar o microfone
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Clique em **Iniciar Microfone** e permita o acesso. Voce vera o nivel de entrada em dB ao lado do botao.
+
+### 3. Verificar o grafico
+
+O grafico mostra seu pitch em tempo real. O piano a esquerda indica as notas. O marcador verde no centro e sua voz. Se nao aparecer nada, ajuste os filtros de audio no painel da direita.
+
+### 4. Configurar exercicios
+
+No painel esquerdo:
+- **Tom**: escolha a nota raiz (C, D, E...)
+- **Oitava**: use +/- para transpor. Vozes masculinas normalmente ficam na oitava 3, femininas na 4
+- **Intervalos**: selecione quais intervalos praticar (unissono, tercas, quintas, oitava, vibrato)
+
+Clique em **Iniciar Exercicios**.
+
+### 5. Praticar
+
+Cada exercicio mostra a nota raiz e a nota alvo. Clique nas notas para ouvir o tom de referencia.
+
+Cante a nota alvo e **segure** - uma barra de progresso aparece quando voce acerta. Mantenha a afinacao por 1.5 segundos para completar automaticamente. Se quiser pular, clique em **Pular**.
+
+### 6. Vibrato
+
+O exercicio de vibrato pede que voce oscile a voz em torno da nota raiz. O app detecta se voce esta fazendo vibrato real (oscilacao ritmica de pelo menos 30 cents).
+
+## Filtros de audio
+
+Se o app nao detecta sua voz bem, expanda **Filtros de Audio** no painel direito:
+
+- **Noise Gate**: corta som abaixo de um limiar (util em ambientes barulhentos)
+- **High-pass**: remove graves/ruido de fundo
+- **Low-pass**: remove agudos/ruido eletrico
+- **Compressor**: nivela o volume da entrada
+
+## Sensibilidade
+
+O slider de sensibilidade controla o "clarity threshold" da detecao de pitch. Valores mais baixos detectam mais facilmente mas podem gerar falsos positivos. O padrao (80%) funciona bem para a maioria dos casos.
+
+## Stack tecnica
+
+- React 18 + TypeScript + Vite
+- Web Audio API + AudioWorklet para processamento em tempo real
+- pitchy (McLeod Pitch Method) para detecao de pitch
+- Zustand para state management
+- Zod para validacao de contratos (SDD)
+- Canvas API para visualizacao do grafico de pitch
+
+## Desenvolvimento
+
+```bash
+npm run test        # testes unitarios (vitest)
+npm run test:run    # testes sem watch
+npm run build       # build de producao
 ```
+
+## Licenca
+
+MIT
