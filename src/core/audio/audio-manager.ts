@@ -25,15 +25,23 @@ export class AudioManager {
 
   async requestMicPermission(): Promise<boolean> {
     try {
-      this.stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          echoCancellation: false,
-          noiseSuppression: false,
-          autoGainControl: false,
-        },
-      })
+      // Try with high-fidelity constraints first
+      try {
+        this.stream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: false,
+            noiseSuppression: false,
+            autoGainControl: false,
+          },
+        })
+      } catch (e) {
+        console.warn('Advanced audio constraints failed, falling back to simple audio', e)
+        // Fallback to basic audio which is more likely to pass on older/restricted Android WebViews
+        this.stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      }
       return true
-    } catch {
+    } catch (err) {
+      console.error('Microphone access fatal error:', err)
       return false
     }
   }
