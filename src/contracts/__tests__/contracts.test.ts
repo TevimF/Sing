@@ -4,7 +4,6 @@ import {
   PitchResultSchema,
   NoteSchema,
   IntervalTypeSchema,
-  ExerciseSchema,
   TunerDisplaySchema,
   INTERVAL_SEMITONES,
 } from '../index'

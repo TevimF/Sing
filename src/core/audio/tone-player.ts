@@ -1,7 +1,6 @@
 export class TonePlayer {
   private audioContext: AudioContext | null = null
-  private oscillator: OscillatorNode | null = null
-  private gainNode: GainNode | null = null
+  private activeNodes: { osc: OscillatorNode; gain: GainNode }[] = []
 
   private getContext(): AudioContext {
     if (!this.audioContext) {
@@ -10,7 +9,7 @@ export class TonePlayer {
     return this.audioContext
   }
 
-  async playNote(frequency: number, durationMs = 1500): Promise<void> {
+  async playNotes(frequencies: number[], durationMs = 1500): Promise<void> {
     this.stop()
 
     const ctx = this.getContext()
@@ -18,38 +17,57 @@ export class TonePlayer {
       await ctx.resume()
     }
 
-    this.gainNode = ctx.createGain()
-    this.gainNode.gain.setValueAtTime(0, ctx.currentTime)
-    // Fade in
-    this.gainNode.gain.linearRampToValueAtTime(0.3, ctx.currentTime + 0.05)
-    // Sustain then fade out
-    this.gainNode.gain.setValueAtTime(0.3, ctx.currentTime + durationMs / 1000 - 0.1)
-    this.gainNode.gain.linearRampToValueAtTime(0, ctx.currentTime + durationMs / 1000)
-    this.gainNode.connect(ctx.destination)
+    const maxVol = 0.3 / Math.max(1, frequencies.length)
 
-    this.oscillator = ctx.createOscillator()
-    this.oscillator.type = 'sine'
-    this.oscillator.frequency.setValueAtTime(frequency, ctx.currentTime)
-    this.oscillator.connect(this.gainNode)
-    this.oscillator.start()
-    this.oscillator.stop(ctx.currentTime + durationMs / 1000)
+    frequencies.forEach(frequency => {
+      const gainNode = ctx.createGain()
+      gainNode.gain.setValueAtTime(0, ctx.currentTime)
+      // Fade in
+      gainNode.gain.linearRampToValueAtTime(maxVol, ctx.currentTime + 0.05)
+      // Sustain then fade out
+      gainNode.gain.setValueAtTime(maxVol, ctx.currentTime + durationMs / 1000 - 0.1)
+      gainNode.gain.linearRampToValueAtTime(0, ctx.currentTime + durationMs / 1000)
+      gainNode.connect(ctx.destination)
 
-    this.oscillator.onended = () => {
-      this.oscillator = null
-      this.gainNode = null
-    }
+      const oscillator = ctx.createOscillator()
+      oscillator.type = 'sine'
+      oscillator.frequency.setValueAtTime(frequency, ctx.currentTime)
+      oscillator.connect(gainNode)
+      oscillator.start()
+      oscillator.stop(ctx.currentTime + durationMs / 1000)
+
+      this.activeNodes.push({ osc: oscillator, gain: gainNode })
+
+      oscillator.onended = () => {
+        oscillator.disconnect()
+        gainNode.disconnect()
+        this.activeNodes = this.activeNodes.filter(n => n.osc !== oscillator)
+      }
+    })
+  }
+
+  async playNote(frequency: number, durationMs = 1500): Promise<void> {
+    return this.playNotes([frequency], durationMs)
   }
 
   stop(): void {
-    try {
-      this.oscillator?.stop()
-    } catch {
-      // Already stopped
-    }
-    this.oscillator?.disconnect()
-    this.gainNode?.disconnect()
-    this.oscillator = null
-    this.gainNode = null
+    const ctx = this.audioContext
+    if (!ctx) return
+
+    this.activeNodes.forEach(({ osc, gain }) => {
+      try {
+        gain.gain.cancelScheduledValues(ctx.currentTime)
+        gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.05)
+        setTimeout(() => {
+          try {
+            osc.stop()
+            osc.disconnect()
+            gain.disconnect()
+          } catch {}
+        }, 60)
+      } catch {}
+    })
+    this.activeNodes = []
   }
 
   async dispose(): Promise<void> {

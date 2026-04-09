@@ -14,7 +14,7 @@ const VIBRATO_MIN_RANGE_CENTS = 30
 const VIBRATO_MAX_RANGE_CENTS = 200
 
 export function ExerciseDisplay({ pitch }: ExerciseDisplayProps) {
-  const { exerciseSet, completeCurrentExercise, nextExercise } = useExerciseStore()
+  const { exerciseSet, completeCurrentExercise, nextExercise, jumpToExercise, shiftOctave } = useExerciseStore()
   const tonePlayerRef = useRef<TonePlayer>(new TonePlayer())
   const [holdProgress, setHoldProgress] = useState(0)
   const holdStartRef = useRef<number | null>(null)
@@ -26,14 +26,21 @@ export function ExerciseDisplay({ pitch }: ExerciseDisplayProps) {
     if (!exerciseSet) return
     const current = exerciseSet.exercises[exerciseSet.currentIndex]
     if (!current) return
-    tonePlayerRef.current.playNote(current.targetNote.frequency, 1500)
+    tonePlayerRef.current.playNote(current.targetNote.frequency, 800)
+  }, [exerciseSet])
+
+  const playChord = useCallback(() => {
+    if (!exerciseSet) return
+    const current = exerciseSet.exercises[exerciseSet.currentIndex]
+    if (!current) return
+    tonePlayerRef.current.playNotes([current.rootNote.frequency, current.targetNote.frequency], 800)
   }, [exerciseSet])
 
   const playRoot = useCallback(() => {
     if (!exerciseSet) return
     const current = exerciseSet.exercises[exerciseSet.currentIndex]
     if (!current) return
-    tonePlayerRef.current.playNote(current.rootNote.frequency, 1500)
+    tonePlayerRef.current.playNote(current.rootNote.frequency, 800)
   }, [exerciseSet])
 
   const current = exerciseSet?.exercises[exerciseSet.currentIndex] ?? null
@@ -41,7 +48,10 @@ export function ExerciseDisplay({ pitch }: ExerciseDisplayProps) {
   const targetMidi = current?.targetNote.midi ?? null
   const currentCents = pitch?.centsOffset ?? null
   const currentMidi = pitch?.midiNote ?? null
-  const isOnTarget = !isVibrato && currentMidi === targetMidi && currentCents !== null && Math.abs(currentCents) <= (current?.toleranceCents ?? 10)
+  
+  // Octave Equivalency: check if the pitch class (modulo 12) matches the target.
+  const isPitchClassMatch = currentMidi !== null && targetMidi !== null && (currentMidi % 12 === targetMidi % 12)
+  const isOnTarget = !isVibrato && isPitchClassMatch && currentCents !== null && Math.abs(currentCents) <= (current?.toleranceCents ?? 10)
 
   // Vibrato detection
   useEffect(() => {
@@ -113,14 +123,10 @@ export function ExerciseDisplay({ pitch }: ExerciseDisplayProps) {
         setHoldProgress(progress)
 
         if (progress >= 1) {
-          // Auto-complete
-          const isLast = exerciseSet!.currentIndex >= exerciseSet!.exercises.length - 1
+          // Auto-complete, but do not progress automatically
           completeCurrentExercise(currentCents ?? 0)
           holdStartRef.current = null
           setHoldProgress(0)
-          if (!isLast) {
-            setTimeout(() => nextExercise(), 300)
-          }
           return
         }
         holdRafRef.current = requestAnimationFrame(animate)
@@ -151,33 +157,43 @@ export function ExerciseDisplay({ pitch }: ExerciseDisplayProps) {
 
   return (
     <div className="exercise-display">
-      <div className="exercise-display__header">
+      <div className="exercise-display__header" style={{ alignItems: 'center' }}>
         <span className="exercise-display__progress">
           {exerciseSet.currentIndex + 1} / {exerciseSet.exercises.length}
         </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', background: 'rgba(255,255,255,0.05)', padding: '0.3rem 0.8rem', borderRadius: '20px' }}>
+          <button style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', fontSize: '1rem', padding: '0 0.5rem' }} onClick={() => shiftOctave(-1)} title="Descer Oitava">-</button>
+          <span style={{ fontSize: '0.8rem', color: '#ccc' }}>Oitava {current.rootNote.octave}</span>
+          <button style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', fontSize: '1rem', padding: '0 0.5rem' }} onClick={() => shiftOctave(1)} title="Subir Oitava">+</button>
+        </div>
         <span className="exercise-display__interval">{formatInterval(current.intervalType)}</span>
       </div>
 
-      <div className="exercise-display__notes">
-        <button className="exercise-display__note exercise-display__note--playable" onClick={playRoot}>
-          <span className="label">Raiz</span>
+      <div className="exercise-display__notes" style={{ gap: '0.75rem', flexWrap: 'wrap' }}>
+        <button className="exercise-display__note exercise-display__note--playable" onClick={playRoot} style={{ flex: 1, minWidth: '80px' }}>
+          <span className="label">Raiz (Tom)</span>
           <span className="note">{current.rootNote.name}{current.rootNote.octave}</span>
-          <span className="freq">{current.rootNote.frequency.toFixed(1)} Hz</span>
           <span className="play-hint">Tocar</span>
         </button>
-        <div className="exercise-display__arrow">{isVibrato ? '~' : '→'}</div>
+
+        {!isVibrato && (
+          <button className="exercise-display__note exercise-display__note--playable" onClick={playChord} style={{ flex: 1, minWidth: '80px', border: '1px solid var(--accent-dim)' }}>
+            <span className="label">Acorde</span>
+            <span className="note">{'🎵'}</span>
+            <span className="play-hint">Ouvir Junção</span>
+          </button>
+        )}
+
         <button
           className={`exercise-display__note exercise-display__note--playable ${isOnTarget || (isVibrato && vibratoDetected) ? 'on-target' : ''}`}
           onClick={playTarget}
+          style={{ flex: 1, minWidth: '80px' }}
         >
           <span className="label">{isVibrato ? 'Vibrato' : 'Alvo'}</span>
           <span className="note">
             {isVibrato ? `${current.rootNote.name}${current.rootNote.octave}~` : `${current.targetNote.name}${current.targetNote.octave}`}
           </span>
-          <span className="freq">
-            {isVibrato ? 'Oscile a voz' : `${current.targetNote.frequency.toFixed(1)} Hz`}
-          </span>
-          {!isVibrato && <span className="play-hint">Tocar</span>}
+          <span className="play-hint">Tocar</span>
         </button>
       </div>
 
@@ -192,11 +208,15 @@ export function ExerciseDisplay({ pitch }: ExerciseDisplayProps) {
       )}
 
       <div className="exercise-display__actions">
-        {current.status === 'active' && (
+        {current.status === 'active' ? (
           <button className="btn btn--secondary" onClick={handleSkip}>
             Pular
           </button>
-        )}
+        ) : !isLast ? (
+          <button className="btn" style={{ background: '#4ade80', color: '#000' }} onClick={() => nextExercise()}>
+            Próximo Exercício
+          </button>
+        ) : null}
       </div>
 
       {allDone && (
@@ -207,7 +227,14 @@ export function ExerciseDisplay({ pitch }: ExerciseDisplayProps) {
 
       <div className="exercise-display__history">
         {exerciseSet.exercises.map((ex, i) => (
-          <div key={ex.id} className={`history-item ${ex.status}`}>
+          <div 
+            key={ex.id} 
+            className={`history-item ${ex.status}`}
+            onClick={() => jumpToExercise(i)}
+            style={{ cursor: 'pointer', transition: 'background 0.2s', padding: '0.5rem' }}
+            onMouseOver={(e) => e.currentTarget.style.background = 'var(--surface-2)'}
+            onMouseOut={(e) => e.currentTarget.style.background = ex.status === 'active' ? 'var(--surface-2)' : 'transparent'}
+          >
             <span>{formatInterval(ex.intervalType)}</span>
             {ex.status === 'completed' && (
               <span className="history-item__cents">

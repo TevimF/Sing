@@ -1,6 +1,9 @@
 import { NOTE_NAMES, type NoteName, type IntervalType } from '../../contracts'
 import { useSettingsStore } from '../../stores/settings.store'
 import { useExerciseStore } from '../../stores/exercise.store'
+import { useRef } from 'react'
+import { TonePlayer } from '../../core/audio/tone-player'
+import { midiFromNoteName, frequencyFromMidi } from '../../core/music/notes'
 
 const INTERVAL_GROUPS: { title: string; intervals: { type: IntervalType; label: string; short: string }[] }[] = [
   {
@@ -35,6 +38,12 @@ const INTERVAL_GROUPS: { title: string; intervals: { type: IntervalType; label: 
 export function ExerciseSelector() {
   const { key, setKey } = useSettingsStore()
   const { exerciseSet, selectedIntervals, octaveOffset, startExercises, reset } = useExerciseStore()
+  const tonePlayerRef = useRef<TonePlayer>(new TonePlayer())
+
+  const playRootPreview = () => {
+    const rootMidi = midiFromNoteName(key, 4 + octaveOffset)
+    tonePlayerRef.current.playNote(frequencyFromMidi(rootMidi), 1500)
+  }
 
   const toggleInterval = (interval: IntervalType) => {
     const current = selectedIntervals
@@ -61,10 +70,22 @@ export function ExerciseSelector() {
 
   if (exerciseSet) {
     return (
-      <div className="exercise-selector">
-        <button className="btn btn--secondary" onClick={reset}>
-          Voltar
+      <div className="exercise-selector" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '1rem', borderBottom: '1px solid var(--surface-2)', marginBottom: '1rem' }}>
+        <button className="btn btn--secondary" onClick={reset} style={{ padding: '0.4rem 0.8rem' }}>
+          ← Voltar
         </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <span style={{ fontSize: '0.8rem', color: '#999' }}>Ref Principal:</span>
+          <span className="root-note-badge" style={{ fontSize: '0.9rem', padding: '0.2rem 0.5rem' }}>{key}4</span>
+          <button 
+            className="btn btn--secondary" 
+            style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem', background: 'var(--surface-3)', border: '1px solid var(--accent-dim)', color: 'var(--accent)' }}
+            title="Ouvir Tom Fixo"
+            onClick={() => tonePlayerRef.current.playNote(frequencyFromMidi(midiFromNoteName(key, 4)), 1500)}
+          >
+            Ouvir 🎵
+          </button>
+        </div>
       </div>
     )
   }
@@ -106,8 +127,16 @@ export function ExerciseSelector() {
           </div>
         </div>
 
-        <div className="exercise-selector__root-display">
+        <div className="exercise-selector__root-display" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'center' }}>
           <span className="root-note-badge">{rootDisplay}</span>
+          <button 
+            className="btn btn--secondary" 
+            style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem', background: 'var(--surface-3)', border: '1px solid var(--accent-dim)', color: 'var(--accent)' }}
+            title="Ouvir Tom Selecionado"
+            onClick={playRootPreview}
+          >
+            Ouvir 🎵
+          </button>
         </div>
       </div>
 

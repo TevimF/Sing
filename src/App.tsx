@@ -4,6 +4,7 @@ import { SensitivityControl } from './components/settings/SensitivityControl'
 import { AudioFiltersPanel } from './components/settings/AudioFiltersPanel'
 import { ExerciseSelector } from './components/exercises/ExerciseSelector'
 import { ExerciseDisplay } from './components/exercises/ExerciseDisplay'
+import { MetronomePanel } from './components/settings/MetronomePanel'
 import { usePitchDetection } from './hooks/usePitchDetection'
 import { useExerciseStore } from './stores/exercise.store'
 import { useSettingsStore } from './stores/settings.store'
@@ -82,6 +83,7 @@ function App() {
           <div className="panel panel--settings">
             <SensitivityControl />
             <AudioFiltersPanel />
+            <MetronomePanel />
           </div>
         </section>
       </main>

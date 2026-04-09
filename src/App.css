@@ -5,21 +5,28 @@
 }
 
 :root {
-  --bg: #0f0f0f;
-  --surface: #1a1a1a;
-  --surface-2: #252525;
-  --text: #e0e0e0;
-  --text-dim: #888;
-  --accent: #4ade80;
-  --accent-dim: #2d5a2d;
+  --bg: #050505;
+  --bg-glow: radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.15), transparent 40%);
+  --surface: rgba(26, 26, 26, 0.6);
+  --surface-2: rgba(37, 37, 37, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.05);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  --glass-blur: blur(16px);
+  --text: #f8f9fa;
+  --text-dim: #9ca3af;
+  --accent: #10b981;
+  --accent-glow: 0 0 16px rgba(16, 185, 129, 0.5);
+  --accent-dim: rgba(16, 185, 129, 0.15);
   --warning: #f59e0b;
-  --danger: #ef4444;
-  --border: #333;
+  --danger: #f43f5e;
+  --border: rgba(255, 255, 255, 0.08);
 }
 
 body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  background: var(--bg);
+  background-color: var(--bg);
+  background-image: var(--bg-glow);
+  background-attachment: fixed;
   color: var(--text);
   min-height: 100vh;
 }
@@ -122,21 +129,29 @@ body {
 .panels {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.75rem;
+  gap: 1.5rem;
   align-items: start;
 }
 
 .panel {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 1rem;
+  background: var(--surface);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  border-radius: 20px;
+  padding: 1.5rem;
 }
 
 .panel--settings .sensitivity-control {
   max-width: none;
-  background: var(--surface);
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border);
   border-radius: 12px;
-  padding: 0.75rem;
+  padding: 1rem;
 }
 
 .panel--settings .filters-panel {
@@ -242,8 +257,12 @@ body {
 
 /* Pitch graph */
 .pitch-graph {
-  background: var(--bg);
-  border: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  backdrop-filter: var(--glass-blur);
+  box-shadow: var(--glass-shadow);
+  overflow: hidden;
 }
 
 /* Tuner controls */

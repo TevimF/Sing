@@ -1,5 +1,5 @@
 import { PitchDetector } from 'pitchy'
-import { type PitchResult, type AudioConfig } from '../../contracts'
+import { type PitchResult } from '../../contracts'
 import { midiFromFrequency, noteNameFromMidi, octaveFromMidi } from '../music/notes'
 import { centsFromNearestNote } from '../music/cents'
 

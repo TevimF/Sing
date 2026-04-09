@@ -16,7 +16,7 @@ export function AudioFiltersPanel() {
   // We flip the slider: value goes from 10 (left=most-aggressive) to 80 (right=most-permissive)
   // internally: threshold = -sliderDisplayVal ... no, keep as dB but invert slider direction.
   // Simpler: show pct. 0%=off(-80dB), 100%=max(-10dB). slider 0-100.
-  const gateAggressPct = Math.round((filters.noiseGateThreshold + 80) / 70 * 100)
+  
 
   return (
     <div className="filters-panel">
