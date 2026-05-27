@@ -876,6 +876,31 @@ body {
   padding: 0.2rem 0.5rem;
 }
 
+/* Scale mode selector */
+.scale-mode-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.scale-mode-row__label {
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  min-width: 5rem;
+  flex-shrink: 0;
+  padding-top: 0.35rem;
+}
+
+.scale-mode-row__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  flex: 1;
+}
+
 /* Interval groups */
 .exercise-selector__intervals {
   display: flex;

@@ -1,5 +1,5 @@
 import { useRef, useEffect, useCallback, useState } from 'react'
-import { type PitchResult, type NoteName } from '../../contracts'
+import { type PitchResult, type NoteName, type ScaleMode } from '../../contracts'
 import { noteNameFromMidi, octaveFromMidi, frequencyFromMidi } from '../../core/music/notes'
 import { getScaleMidiNotes } from '../../core/music/scales'
 
@@ -7,6 +7,7 @@ interface PitchGraphProps {
   pitch: PitchResult | null
   targetMidi?: number | null
   musicalKey?: NoteName
+  scaleMode?: ScaleMode
   durationSeconds?: number
   midiLow?: number
   midiHigh?: number
@@ -30,6 +31,7 @@ export function PitchGraph({
   pitch,
   targetMidi = null,
   musicalKey = 'C',
+  scaleMode = 'major',
   durationSeconds = 8,
   midiLow = DEFAULT_midiLow,
   midiHigh = DEFAULT_midiHigh,
@@ -130,15 +132,15 @@ export function PitchGraph({
   const viewRef = useRef({ cLow, cHigh, viewRange })
   const targetMidiRef = useRef(targetMidi)
   const durationRef = useRef(durationSeconds)
-  const scaleNotesRef = useRef(getScaleMidiNotes(musicalKey, MINIMAP_MIDI_LOW, MINIMAP_MIDI_HIGH))
+  const scaleNotesRef = useRef(getScaleMidiNotes(musicalKey, scaleMode, MINIMAP_MIDI_LOW, MINIMAP_MIDI_HIGH))
   const sizeRef = useRef({ W: 0, H: 0 })
 
   useEffect(() => { viewRef.current = { cLow, cHigh, viewRange } }, [cLow, cHigh, viewRange])
   useEffect(() => { targetMidiRef.current = targetMidi }, [targetMidi])
   useEffect(() => { durationRef.current = durationSeconds }, [durationSeconds])
   useEffect(() => {
-    scaleNotesRef.current = getScaleMidiNotes(musicalKey, MINIMAP_MIDI_LOW, MINIMAP_MIDI_HIGH)
-  }, [musicalKey])
+    scaleNotesRef.current = getScaleMidiNotes(musicalKey, scaleMode, MINIMAP_MIDI_LOW, MINIMAP_MIDI_HIGH)
+  }, [musicalKey, scaleMode])
 
   // Draw loop — set up once on mount, never torn down by view/target changes.
   useEffect(() => {

@@ -1,9 +1,20 @@
-import { NOTE_NAMES, type NoteName, type IntervalType } from '../../contracts'
+import { NOTE_NAMES, type NoteName, type IntervalType, type ScaleMode } from '../../contracts'
 import { useSettingsStore } from '../../stores/settings.store'
 import { useExerciseStore } from '../../stores/exercise.store'
 import { useRef } from 'react'
 import { TonePlayer } from '../../core/audio/tone-player'
 import { midiFromNoteName, frequencyFromMidi } from '../../core/music/notes'
+
+const SCALE_MODE_OPTIONS: { value: ScaleMode; label: string; short: string }[] = [
+  { value: 'major',            label: 'Maior',          short: 'Maj' },
+  { value: 'natural_minor',    label: 'Menor natural',  short: 'min' },
+  { value: 'harmonic_minor',   label: 'Menor harmônica', short: 'min h.' },
+  { value: 'melodic_minor',    label: 'Menor melódica',  short: 'min m.' },
+  { value: 'major_pentatonic', label: 'Pent. maior',    short: 'Pent M' },
+  { value: 'minor_pentatonic', label: 'Pent. menor',    short: 'Pent m' },
+  { value: 'blues',            label: 'Blues',          short: 'Blues' },
+  { value: 'chromatic',        label: 'Cromática',      short: 'Crom.' },
+]
 
 const INTERVAL_GROUPS: { title: string; intervals: { type: IntervalType; label: string; short: string }[] }[] = [
   {
@@ -36,7 +47,7 @@ const INTERVAL_GROUPS: { title: string; intervals: { type: IntervalType; label: 
 ]
 
 export function ExerciseSelector() {
-  const { key, setKey } = useSettingsStore()
+  const { key, setKey, scaleMode, setScaleMode } = useSettingsStore()
   const { exerciseSet, selectedIntervals, octaveOffset, startExercises, reset } = useExerciseStore()
   const tonePlayerRef = useRef<TonePlayer>(new TonePlayer())
 
@@ -137,6 +148,24 @@ export function ExerciseSelector() {
           >
             Ouvir ♪
           </button>
+        </div>
+      </div>
+
+      {/* Scale mode — affects which keys are highlighted on the graph */}
+      <div className="scale-mode-row">
+        <label className="scale-mode-row__label">Escala</label>
+        <div className="scale-mode-row__chips">
+          {SCALE_MODE_OPTIONS.map(({ value, label, short }) => (
+            <button
+              key={value}
+              type="button"
+              className={'chip' + (scaleMode === value ? ' chip--active' : '')}
+              onClick={() => setScaleMode(value)}
+              title={label}
+            >
+              {short}
+            </button>
+          ))}
         </div>
       </div>
 

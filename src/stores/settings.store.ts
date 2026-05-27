@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
-import { type NoteName, type AudioConfig } from '../contracts'
+import { type NoteName, type AudioConfig, type ScaleMode } from '../contracts'
 
 export interface AudioFilters {
   // Pre-amplifier gain
@@ -28,9 +28,11 @@ export interface AudioFilters {
 
 interface SettingsState {
   key: NoteName
+  scaleMode: ScaleMode
   audioConfig: AudioConfig
   filters: AudioFilters
   setKey: (key: NoteName) => void
+  setScaleMode: (mode: ScaleMode) => void
   setReferencePitch: (pitch: number) => void
   setClarityThreshold: (threshold: number) => void
   setFilter: <K extends keyof AudioFilters>(key: K, value: AudioFilters[K]) => void
@@ -40,6 +42,7 @@ export const useSettingsStore = create<SettingsState>()(
   persist(
     (set) => ({
       key: 'C',
+      scaleMode: 'major',
       audioConfig: {
         sampleRate: 48000,
         bufferSize: 1024,
@@ -65,6 +68,7 @@ export const useSettingsStore = create<SettingsState>()(
         compressorRelease: 0.25,
       },
       setKey: (key) => set({ key }),
+      setScaleMode: (mode) => set({ scaleMode: mode }),
       setReferencePitch: (pitch) =>
         set((state) => ({
           audioConfig: { ...state.audioConfig, referencePitch: pitch },
@@ -82,7 +86,12 @@ export const useSettingsStore = create<SettingsState>()(
       name: 'sing-settings',
       storage: createJSONStorage(() => localStorage),
       // Persist user preferences only — not the action functions.
-      partialize: (s) => ({ key: s.key, audioConfig: s.audioConfig, filters: s.filters }),
+      partialize: (s) => ({
+        key: s.key,
+        scaleMode: s.scaleMode,
+        audioConfig: s.audioConfig,
+        filters: s.filters,
+      }),
       version: 1,
     },
   ),

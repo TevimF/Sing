@@ -14,6 +14,7 @@ function App() {
   const { isListening, currentPitch, error, inputLevel, toggle } = usePitchDetection()
   const exerciseSet = useExerciseStore((s) => s.exerciseSet)
   const musicalKey = useSettingsStore((s) => s.key)
+  const scaleMode = useSettingsStore((s) => s.scaleMode)
 
   const currentExercise = exerciseSet?.exercises[exerciseSet.currentIndex]
   const targetMidi = currentExercise?.targetNote.midi ?? null
@@ -33,6 +34,7 @@ function App() {
               pitch={currentPitch}
               targetMidi={targetMidi}
               musicalKey={musicalKey}
+              scaleMode={scaleMode}
             />
             {!isListening && (
               <div className="tuner-empty-state" aria-hidden>
