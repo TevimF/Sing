@@ -125,24 +125,48 @@ export function PitchGraph({
     }
   }
 
-  // Draw loop
+  // Mutable refs let the draw loop read live view/target/key state without
+  // tearing down the rAF every time the user drags or zooms.
+  const viewRef = useRef({ cLow, cHigh, viewRange })
+  const targetMidiRef = useRef(targetMidi)
+  const durationRef = useRef(durationSeconds)
+  const scaleNotesRef = useRef(getScaleMidiNotes(musicalKey, MINIMAP_MIDI_LOW, MINIMAP_MIDI_HIGH))
+  const sizeRef = useRef({ W: 0, H: 0 })
+
+  useEffect(() => { viewRef.current = { cLow, cHigh, viewRange } }, [cLow, cHigh, viewRange])
+  useEffect(() => { targetMidiRef.current = targetMidi }, [targetMidi])
+  useEffect(() => { durationRef.current = durationSeconds }, [durationSeconds])
+  useEffect(() => {
+    scaleNotesRef.current = getScaleMidiNotes(musicalKey, MINIMAP_MIDI_LOW, MINIMAP_MIDI_HIGH)
+  }, [musicalKey])
+
+  // Draw loop — set up once on mount, never torn down by view/target changes.
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
 
-    const scaleNotes = getScaleMidiNotes(musicalKey, MINIMAP_MIDI_LOW, MINIMAP_MIDI_HIGH)
-
-    const draw = () => {
-      const ctx = canvas.getContext('2d')
-      if (!ctx) return
-
+    const updateSize = () => {
       const dpr = window.devicePixelRatio || 1
       const rect = canvas.getBoundingClientRect()
       canvas.width = rect.width * dpr
       canvas.height = rect.height * dpr
-      ctx.scale(dpr, dpr)
-      const W = rect.width
-      const H = rect.height
+      // setTransform overwrites (doesn't compound like scale). Setting width
+      // resets the transform, so we re-apply it here whenever size changes.
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+      sizeRef.current = { W: rect.width, H: rect.height }
+    }
+    updateSize()
+    const observer = new ResizeObserver(updateSize)
+    observer.observe(canvas)
+
+    const draw = () => {
+      const { cLow, cHigh, viewRange } = viewRef.current
+      const { W, H } = sizeRef.current
+      const targetMidi = targetMidiRef.current
+      const durationSeconds = durationRef.current
+      const scaleNotes = scaleNotesRef.current
 
       const now = performance.now()
       const graphLeft = PIANO_WIDTH
@@ -418,8 +442,11 @@ export function PitchGraph({
     }
 
     animRef.current = requestAnimationFrame(draw)
-    return () => cancelAnimationFrame(animRef.current)
-  }, [durationSeconds, targetMidi, musicalKey, cLow, cHigh, viewRange])
+    return () => {
+      cancelAnimationFrame(animRef.current)
+      observer.disconnect()
+    }
+  }, [])
 
   const toggleFullscreen = async () => {
     if (!document.fullscreenElement) {
