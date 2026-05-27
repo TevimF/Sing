@@ -28,11 +28,21 @@ function App() {
       <main className="app-main">
         {/* Graph spans full width */}
         <section className="tuner-section">
-          <PitchGraph
-            pitch={currentPitch}
-            targetMidi={targetMidi}
-            musicalKey={musicalKey}
-          />
+          <div className="tuner-section__graph">
+            <PitchGraph
+              pitch={currentPitch}
+              targetMidi={targetMidi}
+              musicalKey={musicalKey}
+            />
+            {!isListening && (
+              <div className="tuner-empty-state" aria-hidden>
+                <div className="tuner-empty-state__icon">🎤</div>
+                <p className="tuner-empty-state__title">Pronto para cantar?</p>
+                <p className="tuner-empty-state__hint">Toque em <strong>Iniciar Microfone</strong> abaixo</p>
+                <div className="tuner-empty-state__arrow">↓</div>
+              </div>
+            )}
+          </div>
           <div className="tuner-mic-row">
             <button className={`btn btn--mic ${isListening ? 'btn--active' : ''}`} onClick={toggle}>
               {isListening ? 'Parar' : 'Iniciar Microfone'}

@@ -79,6 +79,66 @@ body {
   gap: 0.5rem;
 }
 
+.tuner-section__graph {
+  position: relative;
+}
+
+/* Empty state shown over the graph when mic is off */
+.tuner-empty-state {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgba(15, 15, 15, 0) 0%,
+    rgba(15, 15, 15, 0.55) 60%,
+    rgba(15, 15, 15, 0.85) 100%
+  );
+  border-radius: inherit;
+  text-align: center;
+  padding: 1rem;
+}
+
+.tuner-empty-state__icon {
+  font-size: 2rem;
+  margin-bottom: 0.3rem;
+  filter: grayscale(0.3);
+}
+
+.tuner-empty-state__title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.tuner-empty-state__hint {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+}
+
+.tuner-empty-state__hint strong {
+  color: var(--accent);
+}
+
+.tuner-empty-state__arrow {
+  margin-top: 0.4rem;
+  font-size: 1.4rem;
+  color: var(--accent);
+  animation: bounce-down 1.4s ease-in-out infinite;
+}
+
+@keyframes bounce-down {
+  0%, 100% { transform: translateY(0); opacity: 0.7; }
+  50%      { transform: translateY(6px); opacity: 1; }
+}
+
 .tuner-mic-row {
   display: flex;
   align-items: center;
@@ -87,18 +147,27 @@ body {
 }
 
 .tuner-mic-row .btn--mic {
-  max-width: 200px;
-  padding: 0.5rem 1rem;
-  font-size: 0.85rem;
+  flex: 1 1 200px;
+  max-width: 280px;
+  padding: 0.65rem 1rem;
+  font-size: 0.9rem;
 }
 
 .tuner-mic-row .input-meter {
-  flex: 1;
-  max-width: 300px;
+  flex: 1 1 200px;
+  max-width: 320px;
 }
 
 .tuner-mic-row .error-msg {
   margin: 0;
+  flex: 1 1 100%;
+}
+
+@media (max-width: 700px) {
+  .tuner-mic-row .btn--mic {
+    flex: 1 1 100%;
+    max-width: none;
+  }
 }
 
 /* Pitch graph container + toolbar */
