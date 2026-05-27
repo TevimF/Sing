@@ -37,9 +37,12 @@ export function usePitchDetection() {
         currentFilters,
         (buffer) => {
           const { audioConfig: liveConfig } = useSettingsStore.getState()
+          // Use AudioContext's actual sampleRate (device-native) instead of the
+          // config value — they diverge on Android where the device runs at 48k.
+          const sampleRate = manager.sampleRate ?? liveConfig.sampleRate
           const result = detectPitch(
             buffer,
-            liveConfig.sampleRate,
+            sampleRate,
             liveConfig.clarityThreshold,
             liveConfig.referencePitch,
           )

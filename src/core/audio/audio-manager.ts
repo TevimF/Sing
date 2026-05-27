@@ -58,7 +58,11 @@ export class AudioManager {
     }
 
     this.onLevel = onLevel ?? null
-    this.audioContext = new AudioContext({ sampleRate: config.sampleRate })
+    // Use device-native sampleRate. Forcing 44.1k on Android (which runs natively at
+    // 48k) inserts a resampler in the critical path and adds latency. config.sampleRate
+    // is kept in the contract for now but no longer overrides the AudioContext.
+    this.audioContext = new AudioContext()
+    void config
 
     if (this.audioContext.state === 'suspended') {
       await this.audioContext.resume()
@@ -205,5 +209,9 @@ export class AudioManager {
 
   get isActive(): boolean {
     return this.audioContext?.state === 'running'
+  }
+
+  get sampleRate(): number | null {
+    return this.audioContext?.sampleRate ?? null
   }
 }
