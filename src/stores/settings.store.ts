@@ -38,8 +38,8 @@ interface SettingsState {
 export const useSettingsStore = create<SettingsState>((set) => ({
   key: 'C',
   audioConfig: {
-    sampleRate: 44100,
-    bufferSize: 2048,
+    sampleRate: 48000,
+    bufferSize: 1024,
     clarityThreshold: 0.6,
     referencePitch: 440,
   },
