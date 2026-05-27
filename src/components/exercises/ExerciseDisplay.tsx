@@ -157,37 +157,36 @@ export function ExerciseDisplay({ pitch }: ExerciseDisplayProps) {
 
   return (
     <div className="exercise-display">
-      <div className="exercise-display__header" style={{ alignItems: 'center' }}>
+      <div className="exercise-display__header">
         <span className="exercise-display__progress">
           {exerciseSet.currentIndex + 1} / {exerciseSet.exercises.length}
         </span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', background: 'rgba(255,255,255,0.05)', padding: '0.3rem 0.8rem', borderRadius: '20px' }}>
-          <button style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', fontSize: '1rem', padding: '0 0.5rem' }} onClick={() => shiftOctave(-1)} title="Descer Oitava">-</button>
-          <span style={{ fontSize: '0.8rem', color: '#ccc' }}>Oitava {current.rootNote.octave}</span>
-          <button style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', fontSize: '1rem', padding: '0 0.5rem' }} onClick={() => shiftOctave(1)} title="Subir Oitava">+</button>
+        <div className="exercise-display__octave-pill">
+          <button type="button" onClick={() => shiftOctave(-1)} aria-label="Descer oitava">−</button>
+          <span>Oitava {current.rootNote.octave}</span>
+          <button type="button" onClick={() => shiftOctave(1)} aria-label="Subir oitava">+</button>
         </div>
         <span className="exercise-display__interval">{formatInterval(current.intervalType)}</span>
       </div>
 
-      <div className="exercise-display__notes" style={{ gap: '0.75rem', flexWrap: 'wrap' }}>
-        <button className="exercise-display__note exercise-display__note--playable" onClick={playRoot} style={{ flex: 1, minWidth: '80px' }}>
+      <div className="exercise-display__notes">
+        <button className="exercise-display__note exercise-display__note--playable" onClick={playRoot}>
           <span className="label">Raiz (Tom)</span>
           <span className="note">{current.rootNote.name}{current.rootNote.octave}</span>
           <span className="play-hint">Tocar</span>
         </button>
 
         {!isVibrato && (
-          <button className="exercise-display__note exercise-display__note--playable" onClick={playChord} style={{ flex: 1, minWidth: '80px', border: '1px solid var(--accent-dim)' }}>
-            <span className="label">Acorde</span>
-            <span className="note">{'🎵'}</span>
-            <span className="play-hint">Ouvir Junção</span>
+          <button className="exercise-display__note exercise-display__note--playable exercise-display__note--chord" onClick={playChord}>
+            <span className="label">Junção</span>
+            <span className="note">♪♪</span>
+            <span className="play-hint">Ouvir os dois</span>
           </button>
         )}
 
         <button
           className={`exercise-display__note exercise-display__note--playable ${isOnTarget || (isVibrato && vibratoDetected) ? 'on-target' : ''}`}
           onClick={playTarget}
-          style={{ flex: 1, minWidth: '80px' }}
         >
           <span className="label">{isVibrato ? 'Vibrato' : 'Alvo'}</span>
           <span className="note">
@@ -197,7 +196,6 @@ export function ExerciseDisplay({ pitch }: ExerciseDisplayProps) {
         </button>
       </div>
 
-      {/* Hold progress bar */}
       {showHoldIndicator && (
         <div className="hold-progress">
           <div className="hold-progress__bar">
@@ -213,27 +211,25 @@ export function ExerciseDisplay({ pitch }: ExerciseDisplayProps) {
             Pular
           </button>
         ) : !isLast ? (
-          <button className="btn" style={{ background: '#4ade80', color: '#000' }} onClick={() => nextExercise()}>
-            Próximo Exercício
+          <button className="btn btn--primary" onClick={() => nextExercise()}>
+            Próximo exercício
           </button>
         ) : null}
       </div>
 
       {allDone && (
         <div className="exercise-display__done">
-          Exercicios completos!
+          Exercícios completos!
         </div>
       )}
 
       <div className="exercise-display__history">
         {exerciseSet.exercises.map((ex, i) => (
-          <div 
-            key={ex.id} 
-            className={`history-item ${ex.status}`}
+          <button
+            key={ex.id}
+            type="button"
+            className={`history-item history-item--${ex.status}` + (i === exerciseSet.currentIndex ? ' history-item--current' : '')}
             onClick={() => jumpToExercise(i)}
-            style={{ cursor: 'pointer', transition: 'background 0.2s', padding: '0.5rem' }}
-            onMouseOver={(e) => e.currentTarget.style.background = 'var(--surface-2)'}
-            onMouseOut={(e) => e.currentTarget.style.background = ex.status === 'active' ? 'var(--surface-2)' : 'transparent'}
           >
             <span>{formatInterval(ex.intervalType)}</span>
             {ex.status === 'completed' && (
@@ -244,9 +240,9 @@ export function ExerciseDisplay({ pitch }: ExerciseDisplayProps) {
               </span>
             )}
             {i === exerciseSet.currentIndex && ex.status === 'active' && (
-              <span className="history-item__current">◀</span>
+              <span className="history-item__current-mark">◀</span>
             )}
-          </div>
+          </button>
         ))}
       </div>
     </div>

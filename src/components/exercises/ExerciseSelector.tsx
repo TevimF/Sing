@@ -70,20 +70,20 @@ export function ExerciseSelector() {
 
   if (exerciseSet) {
     return (
-      <div className="exercise-selector" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '1rem', borderBottom: '1px solid var(--surface-2)', marginBottom: '1rem' }}>
-        <button className="btn btn--secondary" onClick={reset} style={{ padding: '0.4rem 0.8rem' }}>
+      <div className="exercise-selector exercise-selector--active">
+        <button className="btn btn--secondary exercise-selector__back" onClick={reset}>
           ← Voltar
         </button>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <span style={{ fontSize: '0.8rem', color: '#999' }}>Ref Principal:</span>
-          <span className="root-note-badge" style={{ fontSize: '0.9rem', padding: '0.2rem 0.5rem' }}>{key}4</span>
-          <button 
-            className="btn btn--secondary" 
-            style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem', background: 'var(--surface-3)', border: '1px solid var(--accent-dim)', color: 'var(--accent)' }}
-            title="Ouvir Tom Fixo"
+        <div className="exercise-selector__ref-group">
+          <span className="exercise-selector__ref-label">Ref:</span>
+          <span className="root-note-badge root-note-badge--sm">{key}4</span>
+          <button
+            type="button"
+            className="exercise-selector__hear"
+            title="Ouvir tom fixo"
             onClick={() => tonePlayerRef.current.playNote(frequencyFromMidi(midiFromNoteName(key, 4)), 1500)}
           >
-            Ouvir 🎵
+            Ouvir ♪
           </button>
         </div>
       </div>
@@ -127,15 +127,15 @@ export function ExerciseSelector() {
           </div>
         </div>
 
-        <div className="exercise-selector__root-display" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'center' }}>
+        <div className="exercise-selector__root-display">
           <span className="root-note-badge">{rootDisplay}</span>
-          <button 
-            className="btn btn--secondary" 
-            style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem', background: 'var(--surface-3)', border: '1px solid var(--accent-dim)', color: 'var(--accent)' }}
-            title="Ouvir Tom Selecionado"
+          <button
+            type="button"
+            className="exercise-selector__hear"
+            title="Ouvir tom selecionado"
             onClick={playRootPreview}
           >
-            Ouvir 🎵
+            Ouvir ♪
           </button>
         </div>
       </div>
