@@ -24,24 +24,21 @@ export class AudioManager {
   private onLevel: OnLevelCallback | null = null
 
   async requestMicPermission(): Promise<boolean> {
+    // Echo cancellation, noise suppression and AGC must stay OFF — all three
+    // distort the pitch the detector sees. The previous fallback to
+    // `{ audio: true }` re-enabled all three silently, which broke detection
+    // without telling the user. Fail explicitly instead.
     try {
-      // Try with high-fidelity constraints first
-      try {
-        this.stream = await navigator.mediaDevices.getUserMedia({
-          audio: {
-            echoCancellation: false,
-            noiseSuppression: false,
-            autoGainControl: false,
-          },
-        })
-      } catch (e) {
-        console.warn('Advanced audio constraints failed, falling back to simple audio', e)
-        // Fallback to basic audio which is more likely to pass on older/restricted Android WebViews
-        this.stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-      }
+      this.stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: false,
+          noiseSuppression: false,
+          autoGainControl: false,
+        },
+      })
       return true
     } catch (err) {
-      console.error('Microphone access fatal error:', err)
+      console.error('Microphone access error:', err)
       return false
     }
   }
