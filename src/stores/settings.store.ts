@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { persist, createJSONStorage } from 'zustand/middleware'
 import { type NoteName, type AudioConfig } from '../contracts'
 
 export interface AudioFilters {
@@ -35,43 +36,54 @@ interface SettingsState {
   setFilter: <K extends keyof AudioFilters>(key: K, value: AudioFilters[K]) => void
 }
 
-export const useSettingsStore = create<SettingsState>((set) => ({
-  key: 'C',
-  audioConfig: {
-    sampleRate: 48000,
-    bufferSize: 1024,
-    clarityThreshold: 0.6,
-    referencePitch: 440,
-  },
-  filters: {
-    preampGain: 1.0,
+export const useSettingsStore = create<SettingsState>()(
+  persist(
+    (set) => ({
+      key: 'C',
+      audioConfig: {
+        sampleRate: 48000,
+        bufferSize: 1024,
+        clarityThreshold: 0.6,
+        referencePitch: 440,
+      },
+      filters: {
+        preampGain: 1.0,
 
-    noiseGateEnabled: false,
-    noiseGateThreshold: -40,
+        noiseGateEnabled: false,
+        noiseGateThreshold: -40,
 
-    highpassEnabled: false,
-    highpassFrequency: 80,
+        highpassEnabled: false,
+        highpassFrequency: 80,
 
-    lowpassEnabled: false,
-    lowpassFrequency: 5000,
+        lowpassEnabled: false,
+        lowpassFrequency: 5000,
 
-    compressorEnabled: false,
-    compressorThreshold: -24,
-    compressorRatio: 4,
-    compressorAttack: 0.003,
-    compressorRelease: 0.25,
-  },
-  setKey: (key) => set({ key }),
-  setReferencePitch: (pitch) =>
-    set((state) => ({
-      audioConfig: { ...state.audioConfig, referencePitch: pitch },
-    })),
-  setClarityThreshold: (threshold) =>
-    set((state) => ({
-      audioConfig: { ...state.audioConfig, clarityThreshold: threshold },
-    })),
-  setFilter: (key, value) =>
-    set((state) => ({
-      filters: { ...state.filters, [key]: value },
-    })),
-}))
+        compressorEnabled: false,
+        compressorThreshold: -24,
+        compressorRatio: 4,
+        compressorAttack: 0.003,
+        compressorRelease: 0.25,
+      },
+      setKey: (key) => set({ key }),
+      setReferencePitch: (pitch) =>
+        set((state) => ({
+          audioConfig: { ...state.audioConfig, referencePitch: pitch },
+        })),
+      setClarityThreshold: (threshold) =>
+        set((state) => ({
+          audioConfig: { ...state.audioConfig, clarityThreshold: threshold },
+        })),
+      setFilter: (key, value) =>
+        set((state) => ({
+          filters: { ...state.filters, [key]: value },
+        })),
+    }),
+    {
+      name: 'sing-settings',
+      storage: createJSONStorage(() => localStorage),
+      // Persist user preferences only — not the action functions.
+      partialize: (s) => ({ key: s.key, audioConfig: s.audioConfig, filters: s.filters }),
+      version: 1,
+    },
+  ),
+)
