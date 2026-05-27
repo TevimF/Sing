@@ -9,11 +9,13 @@ interface ExerciseStoreState {
   exerciseSet: ExerciseSet | null
   selectedIntervals: IntervalType[]
   octaveOffset: number
+  autoAdvance: boolean
   startExercises: (key: NoteName, intervals: IntervalType[]) => void
   nextExercise: () => void
   jumpToExercise: (index: number) => void
   shiftOctave: (delta: number) => void
   completeCurrentExercise: (bestCents: number) => void
+  setAutoAdvance: (v: boolean) => void
   reset: () => void
 }
 
@@ -29,6 +31,7 @@ export const useExerciseStore = create<ExerciseStoreState>()(
       exerciseSet: null,
       selectedIntervals: DEFAULT_INTERVALS,
       octaveOffset: 0,
+      autoAdvance: true,
       startExercises: (key, intervals) => {
         const { octaveOffset } = useExerciseStore.getState()
         const exerciseSet = createExerciseSet(key, intervals, octaveOffset)
@@ -84,6 +87,7 @@ export const useExerciseStore = create<ExerciseStoreState>()(
           }
           return { exerciseSet: { ...state.exerciseSet, exercises } }
         }),
+      setAutoAdvance: (v) => set({ autoAdvance: v }),
       reset: () => set({ exerciseSet: null }),
     }),
     {
@@ -94,6 +98,7 @@ export const useExerciseStore = create<ExerciseStoreState>()(
       partialize: (s) => ({
         selectedIntervals: s.selectedIntervals,
         octaveOffset: s.octaveOffset,
+        autoAdvance: s.autoAdvance,
       }),
       version: 1,
     },

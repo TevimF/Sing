@@ -5,6 +5,13 @@ import { useRef } from 'react'
 import { TonePlayer } from '../../core/audio/tone-player'
 import { midiFromNoteName, frequencyFromMidi } from '../../core/music/notes'
 
+const PRESETS: { id: string; label: string; intervals: IntervalType[] }[] = [
+  { id: 'triad',       label: 'Tríade maior (1-3-5)',  intervals: ['unison', 'major_third', 'perfect_fifth'] },
+  { id: 'triad-minor', label: 'Tríade menor (1-♭3-5)', intervals: ['unison', 'minor_third', 'perfect_fifth'] },
+  { id: 'scale4',      label: 'Pilares (1-3-5-8)',     intervals: ['unison', 'major_third', 'perfect_fifth', 'octave'] },
+  { id: 'fourths',     label: 'Quartas e quintas',     intervals: ['unison', 'perfect_fourth', 'perfect_fifth', 'octave'] },
+]
+
 const SCALE_MODE_OPTIONS: { value: ScaleMode; label: string; short: string }[] = [
   { value: 'major',            label: 'Maior',          short: 'Maj' },
   { value: 'natural_minor',    label: 'Menor natural',  short: 'min' },
@@ -79,6 +86,14 @@ export function ExerciseSelector() {
     startExercises(key, selectedIntervals)
   }
 
+  const applyPreset = (intervals: IntervalType[]) => {
+    useExerciseStore.setState({ selectedIntervals: intervals })
+  }
+
+  const presetMatches = (intervals: IntervalType[]) =>
+    intervals.length === selectedIntervals.length &&
+    intervals.every((i) => selectedIntervals.includes(i))
+
   if (exerciseSet) {
     return (
       <div className="exercise-selector exercise-selector--active">
@@ -148,6 +163,24 @@ export function ExerciseSelector() {
           >
             Ouvir ♪
           </button>
+        </div>
+      </div>
+
+      {/* Quick sequence presets — fill the interval list with a useful pattern */}
+      <div className="preset-row">
+        <label className="preset-row__label">Sequência</label>
+        <div className="preset-row__chips">
+          {PRESETS.map(({ id, label, intervals }) => (
+            <button
+              key={id}
+              type="button"
+              className={'chip preset-chip' + (presetMatches(intervals) ? ' chip--active' : '')}
+              onClick={() => applyPreset(intervals)}
+              title={`Preencher com: ${intervals.join(', ')}`}
+            >
+              {label}
+            </button>
+          ))}
         </div>
       </div>
 

@@ -15,7 +15,7 @@ const VIBRATO_MIN_RANGE_CENTS = 30
 const VIBRATO_MAX_RANGE_CENTS = 200
 
 export function ExerciseDisplay({ pitch }: ExerciseDisplayProps) {
-  const { exerciseSet, completeCurrentExercise, nextExercise, jumpToExercise, shiftOctave } = useExerciseStore()
+  const { exerciseSet, completeCurrentExercise, nextExercise, jumpToExercise, shiftOctave, autoAdvance, setAutoAdvance } = useExerciseStore()
   const tonePlayerRef = useRef<TonePlayer>(new TonePlayer())
   const [holdProgress, setHoldProgress] = useState(0)
   const holdStartRef = useRef<number | null>(null)
@@ -134,10 +134,15 @@ export function ExerciseDisplay({ pitch }: ExerciseDisplayProps) {
         setHoldProgress(progress)
 
         if (progress >= 1) {
-          // Auto-complete, but do not progress automatically
           completeCurrentExercise(currentCents ?? 0)
           holdStartRef.current = null
           setHoldProgress(0)
+          // Sequence mode: walk into the next exercise after a short beat so
+          // the singer feels the phrase rather than punching "Próximo".
+          const set = exerciseSet
+          if (autoAdvance && set && set.currentIndex < set.exercises.length - 1) {
+            setTimeout(() => nextExercise(), 450)
+          }
           return
         }
         holdRafRef.current = requestAnimationFrame(animate)
@@ -150,7 +155,7 @@ export function ExerciseDisplay({ pitch }: ExerciseDisplayProps) {
     }
 
     return () => cancelAnimationFrame(holdRafRef.current)
-  }, [isOnTarget, vibratoDetected, isVibrato, current?.status, current?.id, completeCurrentExercise, nextExercise, exerciseSet, currentCents])
+  }, [isOnTarget, vibratoDetected, isVibrato, current?.status, current?.id, completeCurrentExercise, nextExercise, exerciseSet, currentCents, autoAdvance])
 
   if (!exerciseSet || !current) return null
 
@@ -246,6 +251,15 @@ export function ExerciseDisplay({ pitch }: ExerciseDisplayProps) {
             Próximo exercício
           </button>
         ) : null}
+
+        <label className="auto-advance-toggle" title="Avançar automaticamente quando completar">
+          <input
+            type="checkbox"
+            checked={autoAdvance}
+            onChange={(e) => setAutoAdvance(e.target.checked)}
+          />
+          Sequência
+        </label>
       </div>
 
       {allDone && (
