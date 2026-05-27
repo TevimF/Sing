@@ -2,6 +2,7 @@ import { useRef, useCallback, useEffect, useState } from 'react'
 import { type PitchResult } from '../../contracts'
 import { useExerciseStore } from '../../stores/exercise.store'
 import { TonePlayer } from '../../core/audio/tone-player'
+import { DroneControl } from './DroneControl'
 
 interface ExerciseDisplayProps {
   pitch: PitchResult | null
@@ -168,6 +169,8 @@ export function ExerciseDisplay({ pitch }: ExerciseDisplayProps) {
         </div>
         <span className="exercise-display__interval">{formatInterval(current.intervalType)}</span>
       </div>
+
+      <DroneControl frequency={current.rootNote.frequency} />
 
       <div className="exercise-display__notes">
         <button className="exercise-display__note exercise-display__note--playable" onClick={playRoot}>

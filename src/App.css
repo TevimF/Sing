@@ -977,6 +977,65 @@ body {
   color: var(--text-dim);
 }
 
+/* Drone */
+.drone-control {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.2);
+  transition: border-color 200ms, background 200ms;
+}
+
+.drone-control--on {
+  border-color: var(--accent);
+  background: rgba(16, 185, 129, 0.08);
+}
+
+.drone-control__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  padding: 0.2rem 0.4rem;
+  font-size: 0.85rem;
+  border-radius: 6px;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 120ms;
+}
+
+.drone-control--on .drone-control__toggle {
+  color: var(--accent);
+}
+
+.drone-control__icon {
+  font-size: 1.25rem;
+  line-height: 1;
+  font-weight: 700;
+}
+
+.drone-control--on .drone-control__icon {
+  animation: drone-pulse 2s ease-in-out infinite;
+}
+
+@keyframes drone-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.55; }
+}
+
+.drone-control__volume {
+  flex: 1;
+  min-width: 80px;
+  accent-color: var(--accent);
+  height: 4px;
+  cursor: pointer;
+}
+
 .exercise-display__progress {
   color: var(--text-dim);
   font-size: 0.85rem;
