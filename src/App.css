@@ -96,33 +96,62 @@ body {
   margin: 0;
 }
 
-/* Pitch graph wrapper + vertical octave slider */
-.pitch-graph-wrapper {
+/* Pitch graph container + toolbar */
+.pitch-graph-container {
   position: relative;
+  width: 100%;
+  height: clamp(220px, 42vh, 360px);
+  background: #0f0f0f;
+  border-radius: 8px;
+  overflow: hidden;
 }
 
-.octave-view-slider {
+.pitch-graph-container--fs {
+  height: 100vh;
+  border-radius: 0;
+}
+
+.graph-toolbar {
   position: absolute;
-  left: 0;
-  top: 0;
-  width: 48px;   /* matches PIANO_WIDTH in PitchGraph */
-  height: 100%;
-  writing-mode: vertical-lr;
-  direction: ltr;
-  -webkit-appearance: slider-vertical;
-  appearance: auto;
-  transform: rotate(180deg); /* flip so drag-up = higher notes */
-  transform-origin: center center;
-  opacity: 0;
-  cursor: ns-resize;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 6px;
   z-index: 10;
-  margin: 0;
-  padding: 0;
 }
 
-.octave-view-slider:hover,
-.octave-view-slider:active {
-  opacity: 0.35;
+.graph-btn {
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1;
+  transition: background 120ms, border-color 120ms;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.graph-btn:hover,
+.graph-btn:active {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.graph-btn--accent {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.4);
+  color: var(--accent);
+}
+
+.graph-btn--accent:hover,
+.graph-btn--accent:active {
+  background: rgba(16, 185, 129, 0.25);
 }
 
 /* Side-by-side panels */
@@ -255,14 +284,18 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* Pitch graph */
+/* Pitch graph canvas — fills its container */
 .pitch-graph {
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;
+  cursor: grab;
   background: rgba(0, 0, 0, 0.3);
-  border: 1px solid var(--glass-border);
-  border-radius: 16px;
-  backdrop-filter: var(--glass-blur);
-  box-shadow: var(--glass-shadow);
-  overflow: hidden;
+}
+
+.pitch-graph:active {
+  cursor: grabbing;
 }
 
 /* Tuner controls */

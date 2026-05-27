@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { PitchGraph } from './components/tuner/PitchGraph'
 import { SensitivityControl } from './components/settings/SensitivityControl'
 import { AudioFiltersPanel } from './components/settings/AudioFiltersPanel'
@@ -15,14 +14,9 @@ function App() {
   const { isListening, currentPitch, error, inputLevel, toggle } = usePitchDetection()
   const exerciseSet = useExerciseStore((s) => s.exerciseSet)
   const musicalKey = useSettingsStore((s) => s.key)
-  const [graphMidiLow, setGraphMidiLow] = useState(36) // C2 default, slides by semitone
 
   const currentExercise = exerciseSet?.exercises[exerciseSet.currentIndex]
   const targetMidi = currentExercise?.targetNote.midi ?? null
-
-  const GRAPH_SPAN = 24  // 2 octaves — more spaced lines
-  const midiLow = graphMidiLow
-  const midiHigh = graphMidiLow + GRAPH_SPAN
 
   return (
     <div className="app">
@@ -34,26 +28,11 @@ function App() {
       <main className="app-main">
         {/* Graph spans full width */}
         <section className="tuner-section">
-          <div className="pitch-graph-wrapper">
-            <PitchGraph
-              pitch={currentPitch}
-              targetMidi={targetMidi}
-              musicalKey={musicalKey}
-              midiLow={midiLow}
-              midiHigh={midiHigh}
-            />
-            {/* Vertical slider overlaid on the piano — drag up for higher notes */}
-            <input
-              type="range"
-              min="12"
-              max="72"
-              step="1"
-              value={graphMidiLow}
-              onChange={(e) => setGraphMidiLow(Number(e.target.value))}
-              className="octave-view-slider"
-              title={`Vista: ${midiLow}–${midiHigh}`}
-            />
-          </div>
+          <PitchGraph
+            pitch={currentPitch}
+            targetMidi={targetMidi}
+            musicalKey={musicalKey}
+          />
           <div className="tuner-mic-row">
             <button className={`btn btn--mic ${isListening ? 'btn--active' : ''}`} onClick={toggle}>
               {isListening ? 'Parar' : 'Iniciar Microfone'}

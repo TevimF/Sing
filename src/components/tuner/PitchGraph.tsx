@@ -458,49 +458,25 @@ export function PitchGraph({
 
   const zoomIn = () => setViewRange(prev => Math.max(12, prev - 4))
   const zoomOut = () => setViewRange(prev => Math.min(60, prev + 4))
+  const panUp = () => setViewCenter(prev =>
+    Math.min(MINIMAP_MIDI_HIGH - viewRange / 2, prev + 12),
+  )
+  const panDown = () => setViewCenter(prev =>
+    Math.max(MINIMAP_MIDI_LOW + viewRange / 2, prev - 12),
+  )
 
   return (
-    <div 
-      ref={containerRef} 
-      style={{ 
-        position: 'relative', 
-        width: '100%', 
-        height: isFullscreen ? '100vh' : '320px',
-        background: '#0f0f0f',
-        borderRadius: isFullscreen ? '0' : '8px',
-        overflow: 'hidden'
-      }}
+    <div
+      ref={containerRef}
+      className={`pitch-graph-container ${isFullscreen ? 'pitch-graph-container--fs' : ''}`}
     >
-      <div 
-        style={{
-          position: 'absolute',
-          top: '8px',
-          right: '24px',
-          display: 'flex',
-          gap: '4px',
-          zIndex: 10
-        }}
-      >
-        <button 
-          onClick={zoomIn}
-          style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', width: '28px', height: '28px', borderRadius: '4px', cursor: 'pointer' }}
-          title="Zoom In"
-        >
-          +
-        </button>
-        <button 
-          onClick={zoomOut}
-          style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', width: '28px', height: '28px', borderRadius: '4px', cursor: 'pointer' }}
-          title="Zoom Out"
-        >
-          -
-        </button>
-        <button 
-          onClick={toggleFullscreen}
-          style={{ background: 'rgba(74,222,128,0.2)', border: 'none', color: '#4ade80', height: '28px', padding: '0 8px', borderRadius: '4px', cursor: 'pointer', marginLeft: '8px' }}
-          title="Tela Cheia"
-        >
-          {isFullscreen ? '✕ Sair' : '⛶ Tela Cheia'}
+      <div className="graph-toolbar">
+        <button className="graph-btn" onClick={panUp} title="Subir oitava" aria-label="Subir oitava">↑</button>
+        <button className="graph-btn" onClick={panDown} title="Descer oitava" aria-label="Descer oitava">↓</button>
+        <button className="graph-btn" onClick={zoomIn} title="Aproximar" aria-label="Aproximar">+</button>
+        <button className="graph-btn" onClick={zoomOut} title="Afastar" aria-label="Afastar">−</button>
+        <button className="graph-btn graph-btn--accent" onClick={toggleFullscreen} title="Tela cheia">
+          {isFullscreen ? '✕' : '⛶'}
         </button>
       </div>
 
@@ -512,12 +488,6 @@ export function PitchGraph({
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
         onWheel={handleWheel}
-        style={{ 
-          width: '100%', 
-          height: '100%', 
-          touchAction: 'none', 
-          cursor: isDragging.current ? 'grabbing' : 'grab' 
-        }}
       />
     </div>
   )
