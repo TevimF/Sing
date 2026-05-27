@@ -49,10 +49,20 @@ export function ExerciseDisplay({ pitch }: ExerciseDisplayProps) {
   const targetMidi = current?.targetNote.midi ?? null
   const currentCents = pitch?.centsOffset ?? null
   const currentMidi = pitch?.midiNote ?? null
-  
-  // Octave Equivalency: check if the pitch class (modulo 12) matches the target.
+
+  // Pitch-class match (octave-agnostic). For vocal range flexibility we accept
+  // the singer being one octave above or below the displayed target, but flag
+  // anything beyond that as "wrong octave" so it doesn't auto-complete.
   const isPitchClassMatch = currentMidi !== null && targetMidi !== null && (currentMidi % 12 === targetMidi % 12)
-  const isOnTarget = !isVibrato && isPitchClassMatch && currentCents !== null && Math.abs(currentCents) <= (current?.toleranceCents ?? 10)
+  const octaveDelta = currentMidi !== null && targetMidi !== null && isPitchClassMatch
+    ? Math.round((currentMidi - targetMidi) / 12)
+    : 0
+  const inAcceptableOctave = Math.abs(octaveDelta) <= 1
+  const isOnTarget = !isVibrato
+    && isPitchClassMatch
+    && inAcceptableOctave
+    && currentCents !== null
+    && Math.abs(currentCents) <= (current?.toleranceCents ?? 10)
 
   // Vibrato detection
   useEffect(() => {
@@ -198,6 +208,24 @@ export function ExerciseDisplay({ pitch }: ExerciseDisplayProps) {
           <span className="play-hint">Tocar</span>
         </button>
       </div>
+
+      {/* Wrong-octave hint: pitch class matches but singer is too far up/down */}
+      {!isVibrato && isPitchClassMatch && !inAcceptableOctave && (
+        <div className="octave-hint">
+          {octaveDelta > 0 ? '↓' : '↑'}
+          <span>
+            Voz {Math.abs(octaveDelta)} oitava{Math.abs(octaveDelta) > 1 ? 's' : ''}
+            {octaveDelta > 0 ? ' acima' : ' abaixo'} do alvo
+          </span>
+        </div>
+      )}
+
+      {/* Right-octave-class hint: matched pitch class, 1 octave off — still accepted */}
+      {!isVibrato && isPitchClassMatch && inAcceptableOctave && octaveDelta !== 0 && (
+        <div className="octave-hint octave-hint--soft">
+          <span>Nota certa — {octaveDelta > 0 ? '1 oitava acima' : '1 oitava abaixo'}</span>
+        </div>
+      )}
 
       {showHoldIndicator && (
         <div className="hold-progress">

@@ -1217,6 +1217,29 @@ body {
   color: var(--accent);
 }
 
+/* Octave hint */
+.octave-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: var(--warning);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.octave-hint--soft {
+  background: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.25);
+  color: var(--accent);
+  font-weight: 400;
+  font-size: 0.78rem;
+}
+
 /* Hold progress */
 .hold-progress {
   display: flex;
