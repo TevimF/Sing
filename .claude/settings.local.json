@@ -7,7 +7,29 @@
       "Bash(rm -rf \"/c/Users/estev/TevimProjectsS/The Lobby/singapp-temp\")",
       "Bash(npm install:*)",
       "Bash(npx vitest:*)",
-      "Bash(gh auth:*)"
+      "Bash(gh auth:*)",
+      "Bash(npx tsc *)",
+      "Bash(npm run *)",
+      "Read(//tmp/**)",
+      "Bash(pkill -f \"vite\")",
+      "Bash(git stash *)",
+      "Bash(npx cap *)",
+      "Bash(./gradlew assembleDebug)",
+      "Read(//usr/lib/jvm/java-21-openjdk/**)",
+      "Read(//opt/**)",
+      "Read(//usr/local/**)",
+      "Bash(flatpak list *)",
+      "Bash(sudo dnf install -y java-21-openjdk-devel)",
+      "Bash(alternatives --display java)",
+      "Bash(mkdir -p ~/.local)",
+      "Bash(curl -sL -o jdk21.tar.gz \"https://api.adoptium.net/v3/binary/latest/21/ga/linux/x64/jdk/hotspot/normal/eclipse\")",
+      "Bash(tar -tzf jdk21.tar.gz)",
+      "Bash(tar -xzf /tmp/jdk21.tar.gz)",
+      "Bash(rm -rf jdk21)",
+      "Bash(mv jdk-21.0.11+10 jdk21)",
+      "Bash(grep -E \"^\\(javac|jlink|jar|java\\)$\")",
+      "Bash(~/.local/jdk21/bin/javac -version)",
+      "Bash(xargs -I{} ls -lh {})"
     ]
   }
 }

@@ -184,7 +184,7 @@ export function PitchGraph({
         return centerX - (age / (durationSeconds / 2)) * (graphWidth / 2)
       }
 
-      ctx.fillStyle = '#0f0f0f'
+      ctx.fillStyle = '#0a0907'
       ctx.fillRect(0, 0, W, H)
 
       const startInt = Math.floor(cLow)
@@ -198,12 +198,12 @@ export function PitchGraph({
         const isBlack = BLACK_KEYS.has(midi % 12)
 
         if (isInScale) {
-          ctx.fillStyle = isC ? 'rgba(74, 222, 128, 0.06)' : 'rgba(74, 222, 128, 0.03)'
+          ctx.fillStyle = isC ? 'rgba(232, 164, 76, 0.07)' : 'rgba(232, 164, 76, 0.035)'
           ctx.fillRect(graphLeft, y, graphWidth, noteHeight)
         }
 
         if (!isBlack) {
-          ctx.strokeStyle = isC ? '#333' : isInScale ? '#222' : '#181818'
+          ctx.strokeStyle = isC ? '#38322a' : isInScale ? '#26211b' : '#1a1714'
           ctx.lineWidth = isC ? 1 : 0.5
           ctx.beginPath()
           ctx.moveTo(graphLeft, y + noteHeight)
@@ -212,7 +212,7 @@ export function PitchGraph({
         }
       }
 
-      ctx.strokeStyle = '#333'
+      ctx.strokeStyle = '#3a3329'
       ctx.lineWidth = 1
       ctx.setLineDash([4, 4])
       ctx.beginPath()
@@ -221,8 +221,8 @@ export function PitchGraph({
       ctx.stroke()
       ctx.setLineDash([])
 
-      ctx.fillStyle = '#444'
-      ctx.font = '8px Inter, system-ui, sans-serif'
+      ctx.fillStyle = '#5a5046'
+      ctx.font = '8px "JetBrains Mono", ui-monospace, monospace'
       ctx.textAlign = 'center'
       for (let s = 1; s <= durationSeconds / 2; s++) {
         const x = centerX - (s / (durationSeconds / 2)) * (graphWidth / 2)
@@ -233,7 +233,7 @@ export function PitchGraph({
 
       if (targetMidi !== null && targetMidi >= cLow - 1 && targetMidi <= cHigh + 1) {
         const targetY = yFromMidi(targetMidi)
-        ctx.strokeStyle = 'rgba(74, 222, 128, 0.5)'
+        ctx.strokeStyle = 'rgba(232, 164, 76, 0.55)'
         ctx.lineWidth = 2
         ctx.setLineDash([8, 4])
         ctx.beginPath()
@@ -244,8 +244,8 @@ export function PitchGraph({
 
         const tName = noteNameFromMidi(targetMidi)
         const tOct = octaveFromMidi(targetMidi)
-        ctx.fillStyle = '#4ade80'
-        ctx.font = 'bold 10px Inter, system-ui, sans-serif'
+        ctx.fillStyle = '#e8a44c'
+        ctx.font = 'italic bold 11px "Fraunces", Georgia, serif'
         ctx.textAlign = 'left'
         ctx.fillText(`${tName}${tOct}`, centerX + 8, targetY - 4)
       }
@@ -271,7 +271,7 @@ export function PitchGraph({
 
           const age = (now - curr.time) / 1000
           const alpha = Math.max(0.2, 1 - age / (durationSeconds / 2))
-          ctx.strokeStyle = `rgba(74, 222, 128, ${alpha})`
+          ctx.strokeStyle = `rgba(232, 164, 76, ${alpha})`
           ctx.lineWidth = 3
           ctx.beginPath()
           ctx.moveTo(x1, Math.max(-10, Math.min(H+10, y1)))
@@ -287,12 +287,12 @@ export function PitchGraph({
           const y = yFromMidi(last.midi)
           if (y >= 0 && y <= H) {
             ctx.beginPath()
-            ctx.arc(centerX, y, 6, 0, Math.PI * 2)
-            ctx.fillStyle = 'rgba(74, 222, 128, 0.2)'
+            ctx.arc(centerX, y, 8, 0, Math.PI * 2)
+            ctx.fillStyle = 'rgba(232, 164, 76, 0.2)'
             ctx.fill()
             ctx.beginPath()
-            ctx.arc(centerX, y, 3.5, 0, Math.PI * 2)
-            ctx.fillStyle = '#4ade80'
+            ctx.arc(centerX, y, 4, 0, Math.PI * 2)
+            ctx.fillStyle = '#f6b85a'
             ctx.fill()
           }
         }
@@ -306,14 +306,14 @@ export function PitchGraph({
         const cents = Math.round((cp.midi - midiInt) * 100)
         const clarityPct = Math.round(cp.clarity * 100)
         const freq = frequencyFromMidi(cp.midi)
-        const label = `${noteName}${oct}  ${cents >= 0 ? '+' : ''}${cents}c  ${clarityPct}%  ${freq.toFixed(1)}Hz`
-        ctx.fillStyle = 'rgba(74, 222, 128, 0.85)'
-        ctx.font = 'bold 11px Inter, monospace'
+        const label = `${noteName}${oct}  ${cents >= 0 ? '+' : ''}${cents}¢  ${clarityPct}%  ${freq.toFixed(1)}Hz`
+        ctx.fillStyle = 'rgba(232, 164, 76, 0.85)'
+        ctx.font = '500 11px "JetBrains Mono", ui-monospace, monospace'
         ctx.textAlign = 'left'
-        ctx.fillText(label, graphLeft + 8, 16)
+        ctx.fillText(label, graphLeft + 10, 18)
       }
 
-      ctx.fillStyle = '#1a1a1a'
+      ctx.fillStyle = '#14110e'
       ctx.fillRect(0, 0, PIANO_WIDTH, H)
 
       for (let midi = startInt; midi <= endInt; midi++) {
@@ -328,13 +328,13 @@ export function PitchGraph({
         const isTarget = targetMidi === midi
 
         if (isActive) {
-          ctx.fillStyle = '#4ade80'
+          ctx.fillStyle = '#e8a44c'
         } else if (isTarget) {
-          ctx.fillStyle = '#2d5a2d'
+          ctx.fillStyle = '#5a4226'
         } else if (isBlack) {
-          ctx.fillStyle = isInScale ? '#1f1f1f' : '#141414'
+          ctx.fillStyle = isInScale ? '#221c16' : '#16130f'
         } else {
-          ctx.fillStyle = isInScale ? '#2a2a2a' : '#222'
+          ctx.fillStyle = isInScale ? '#2a231b' : '#221c16'
         }
 
         const keyH = Math.max(noteHeight - 0.5, 1)
@@ -342,7 +342,7 @@ export function PitchGraph({
         ctx.fillRect(0, y, keyW, keyH)
 
         if (!isBlack) {
-          ctx.strokeStyle = '#333'
+          ctx.strokeStyle = '#38322a'
           ctx.lineWidth = 0.5
           ctx.beginPath()
           ctx.moveTo(0, y + keyH)
@@ -351,7 +351,7 @@ export function PitchGraph({
         }
 
         if (isInScale && !isActive) {
-          ctx.fillStyle = 'rgba(74, 222, 128, 0.15)'
+          ctx.fillStyle = 'rgba(232, 164, 76, 0.18)'
           ctx.fillRect(keyW - 3, y, 3, keyH)
         }
 
@@ -359,24 +359,24 @@ export function PitchGraph({
           const name = noteNameFromMidi(midi)
           const oct = octaveFromMidi(midi)
           const freqStr = frequencyFromMidi(midi).toFixed(0)
-          
-          ctx.fillStyle = isActive ? '#000' : isTarget ? '#4ade80' : '#666'
+
+          ctx.fillStyle = isActive ? '#0a0907' : isTarget ? '#e8a44c' : '#8a7d6a'
           ctx.textAlign = 'right'
-          
+
           if (keyH > 16) {
-            ctx.font = `${isTarget ? 'bold ' : ''}8px Inter, system-ui, sans-serif`
+            ctx.font = `${isTarget ? 'italic 600' : '500'} 9px "Fraunces", Georgia, serif`
             ctx.fillText(`${name}${oct}`, PIANO_WIDTH - 4, y + keyH / 2 - 1)
-            ctx.font = '6px Inter, system-ui, sans-serif'
-            ctx.fillStyle = isActive ? '#000' : isTarget ? 'rgba(74,222,128,0.7)' : '#444'
+            ctx.font = '6px "JetBrains Mono", ui-monospace, monospace'
+            ctx.fillStyle = isActive ? '#0a0907' : isTarget ? 'rgba(232,164,76,0.7)' : '#5a5046'
             ctx.fillText(`${freqStr}Hz`, PIANO_WIDTH - 4, y + keyH / 2 + 7)
           } else {
-            ctx.font = `${isTarget ? 'bold ' : ''}8px Inter, system-ui, sans-serif`
+            ctx.font = `${isTarget ? 'italic 600' : '500'} 9px "Fraunces", Georgia, serif`
             ctx.fillText(`${name}${oct}`, PIANO_WIDTH - 4, y + keyH / 2 + 3)
           }
         }
       }
 
-      ctx.strokeStyle = '#444'
+      ctx.strokeStyle = '#3a3329'
       ctx.lineWidth = 1
       ctx.beginPath()
       ctx.moveTo(PIANO_WIDTH, 0)
@@ -387,36 +387,36 @@ export function PitchGraph({
       const mmRange = MINIMAP_MIDI_HIGH - MINIMAP_MIDI_LOW
       const mmY = (m: number) => H - ((m - MINIMAP_MIDI_LOW) / mmRange) * H
 
-      ctx.fillStyle = '#111'
+      ctx.fillStyle = '#100e0c'
       ctx.fillRect(minimapLeft, 0, MINIMAP_WIDTH, H)
 
       for (let oct = 1; oct <= 7; oct++) {
         const midi = (oct + 1) * 12
         const y = mmY(midi)
-        ctx.strokeStyle = '#2a2a2a'
+        ctx.strokeStyle = '#2e2820'
         ctx.lineWidth = 0.5
         ctx.beginPath()
         ctx.moveTo(minimapLeft, y)
         ctx.lineTo(minimapLeft + MINIMAP_WIDTH, y)
         ctx.stroke()
 
-        ctx.fillStyle = '#333'
-        ctx.font = '5px sans-serif'
+        ctx.fillStyle = '#3a3329'
+        ctx.font = '5px "JetBrains Mono", ui-monospace, monospace'
         ctx.textAlign = 'center'
         ctx.fillText(`C${oct}`, minimapLeft + MINIMAP_WIDTH / 2, y - 1)
       }
 
       const viewTopY = mmY(cHigh)
       const viewBotY = mmY(cLow)
-      ctx.fillStyle = 'rgba(74, 222, 128, 0.08)'
+      ctx.fillStyle = 'rgba(232, 164, 76, 0.10)'
       ctx.fillRect(minimapLeft, viewTopY, MINIMAP_WIDTH, viewBotY - viewTopY)
-      ctx.strokeStyle = 'rgba(74, 222, 128, 0.4)'
+      ctx.strokeStyle = 'rgba(232, 164, 76, 0.45)'
       ctx.lineWidth = 1
       ctx.strokeRect(minimapLeft, viewTopY, MINIMAP_WIDTH, viewBotY - viewTopY)
 
       if (targetMidi !== null) {
         const ty = mmY(targetMidi)
-        ctx.fillStyle = 'rgba(74, 222, 128, 0.6)'
+        ctx.fillStyle = 'rgba(232, 164, 76, 0.7)'
         ctx.fillRect(minimapLeft + 1, ty - 1, MINIMAP_WIDTH - 2, 2)
       }
 
@@ -428,12 +428,12 @@ export function PitchGraph({
         const alpha = Math.max(0.1, 1 - age)
         const outOfView = pt.midi < cLow || pt.midi > cHigh
         ctx.fillStyle = outOfView
-          ? `rgba(255, 200, 50, ${alpha})`
-          : `rgba(74, 222, 128, ${alpha})`
+          ? `rgba(184, 74, 62, ${alpha})`
+          : `rgba(232, 164, 76, ${alpha})`
         ctx.fillRect(minimapLeft + 2, py - 1, MINIMAP_WIDTH - 4, 2)
       }
 
-      ctx.strokeStyle = '#333'
+      ctx.strokeStyle = '#3a3329'
       ctx.lineWidth = 1
       ctx.beginPath()
       ctx.moveTo(minimapLeft, 0)
@@ -477,8 +477,8 @@ export function PitchGraph({
         <button className="graph-btn" onClick={panDown} title="Descer oitava" aria-label="Descer oitava">↓</button>
         <button className="graph-btn" onClick={zoomIn} title="Aproximar" aria-label="Aproximar">+</button>
         <button className="graph-btn" onClick={zoomOut} title="Afastar" aria-label="Afastar">−</button>
-        <button className="graph-btn graph-btn--accent" onClick={toggleFullscreen} title="Tela cheia">
-          {isFullscreen ? '✕' : '⛶'}
+        <button className="graph-btn graph-btn--accent" onClick={toggleFullscreen} title="Tela cheia" aria-label="Tela cheia">
+          {isFullscreen ? '×' : '⤢'}
         </button>
       </div>
 
