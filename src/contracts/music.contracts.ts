@@ -28,6 +28,7 @@ export const IntervalTypeSchema = z.enum([
   'minor_seventh',
   'major_seventh',
   'octave',
+  'vibrato',
 ])
 
 export const INTERVAL_SEMITONES: Record<IntervalType, number> = {
@@ -44,6 +45,7 @@ export const INTERVAL_SEMITONES: Record<IntervalType, number> = {
   minor_seventh: 10,
   major_seventh: 11,
   octave: 12,
+  vibrato: 0,
 }
 
 export const IntervalSchema = z.object({
@@ -52,6 +54,30 @@ export const IntervalSchema = z.object({
   rootNote: NoteSchema,
   targetNote: NoteSchema,
 })
+
+export const ScaleModeSchema = z.enum([
+  'major',
+  'natural_minor',
+  'harmonic_minor',
+  'melodic_minor',
+  'major_pentatonic',
+  'minor_pentatonic',
+  'blues',
+  'chromatic',
+])
+
+/** Semitone offsets from the root, ascending. Used to render which keys belong
+ *  to the user's chosen scale on the piano and the graph background. */
+export const SCALE_INTERVALS: Record<z.infer<typeof ScaleModeSchema>, readonly number[]> = {
+  major:            [0, 2, 4, 5, 7, 9, 11],
+  natural_minor:    [0, 2, 3, 5, 7, 8, 10],
+  harmonic_minor:   [0, 2, 3, 5, 7, 8, 11],
+  melodic_minor:    [0, 2, 3, 5, 7, 9, 11],
+  major_pentatonic: [0, 2, 4, 7, 9],
+  minor_pentatonic: [0, 3, 5, 7, 10],
+  blues:            [0, 3, 5, 6, 7, 10],
+  chromatic:        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+}
 
 export const ExerciseStatusSchema = z.enum([
   'pending',
@@ -87,3 +113,4 @@ export type Interval = z.infer<typeof IntervalSchema>
 export type ExerciseStatus = z.infer<typeof ExerciseStatusSchema>
 export type Exercise = z.infer<typeof ExerciseSchema>
 export type ExerciseSet = z.infer<typeof ExerciseSetSchema>
+export type ScaleMode = z.infer<typeof ScaleModeSchema>

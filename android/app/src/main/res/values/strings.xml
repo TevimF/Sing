@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Sing</string>
+    <string name="title_activity_main">Sing</string>
+    <string name="package_name">com.thelobby.sing</string>
+    <string name="custom_url_scheme">com.thelobby.sing</string>
+</resources>

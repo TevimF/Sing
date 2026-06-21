@@ -1,0 +1,315 @@
+import { useRef, useCallback, useEffect, useState } from 'react'
+import { type PitchResult } from '../../contracts'
+import { useExerciseStore } from '../../stores/exercise.store'
+import { TonePlayer } from '../../core/audio/tone-player'
+import { DroneControl } from './DroneControl'
+
+interface ExerciseDisplayProps {
+  pitch: PitchResult | null
+}
+
+const HOLD_DURATION_MS = 1500
+const VIBRATO_WINDOW_MS = 2000
+const VIBRATO_MIN_OSCILLATIONS = 3
+const VIBRATO_MIN_RANGE_CENTS = 30
+const VIBRATO_MAX_RANGE_CENTS = 200
+
+export function ExerciseDisplay({ pitch }: ExerciseDisplayProps) {
+  const { exerciseSet, completeCurrentExercise, nextExercise, jumpToExercise, shiftOctave, autoAdvance, setAutoAdvance } = useExerciseStore()
+  const tonePlayerRef = useRef<TonePlayer>(new TonePlayer())
+  const [holdProgress, setHoldProgress] = useState(0)
+  const holdStartRef = useRef<number | null>(null)
+  const holdRafRef = useRef<number>(0)
+  const [vibratoDetected, setVibratoDetected] = useState(false)
+  const pitchHistoryRef = useRef<{ cents: number; time: number }[]>([])
+
+  const playTarget = useCallback(() => {
+    if (!exerciseSet) return
+    const current = exerciseSet.exercises[exerciseSet.currentIndex]
+    if (!current) return
+    tonePlayerRef.current.playNote(current.targetNote.frequency, 800)
+  }, [exerciseSet])
+
+  const playChord = useCallback(() => {
+    if (!exerciseSet) return
+    const current = exerciseSet.exercises[exerciseSet.currentIndex]
+    if (!current) return
+    tonePlayerRef.current.playNotes([current.rootNote.frequency, current.targetNote.frequency], 800)
+  }, [exerciseSet])
+
+  const playRoot = useCallback(() => {
+    if (!exerciseSet) return
+    const current = exerciseSet.exercises[exerciseSet.currentIndex]
+    if (!current) return
+    tonePlayerRef.current.playNote(current.rootNote.frequency, 800)
+  }, [exerciseSet])
+
+  const current = exerciseSet?.exercises[exerciseSet.currentIndex] ?? null
+  const isVibrato = current?.intervalType === 'vibrato'
+  const targetMidi = current?.targetNote.midi ?? null
+  const currentCents = pitch?.centsOffset ?? null
+  const currentMidi = pitch?.midiNote ?? null
+
+  // Pitch-class match (octave-agnostic). For vocal range flexibility we accept
+  // the singer being one octave above or below the displayed target, but flag
+  // anything beyond that as "wrong octave" so it doesn't auto-complete.
+  const isPitchClassMatch = currentMidi !== null && targetMidi !== null && (currentMidi % 12 === targetMidi % 12)
+  const octaveDelta = currentMidi !== null && targetMidi !== null && isPitchClassMatch
+    ? Math.round((currentMidi - targetMidi) / 12)
+    : 0
+  const inAcceptableOctave = Math.abs(octaveDelta) <= 1
+  const isOnTarget = !isVibrato
+    && isPitchClassMatch
+    && inAcceptableOctave
+    && currentCents !== null
+    && Math.abs(currentCents) <= (current?.toleranceCents ?? 10)
+
+  // Vibrato detection
+  useEffect(() => {
+    if (!isVibrato || !pitch || !current) return
+
+    const now = performance.now()
+    const rootMidi = current.rootNote.midi
+    const pitchMidi = pitch.midiNote
+    if (pitchMidi === null) return
+
+    const midiDiff = pitchMidi - rootMidi
+    if (Math.abs(midiDiff) > 2) return // too far from root, ignore
+
+    const centsFromRoot = midiDiff * 100 + (pitch.centsOffset ?? 0)
+    pitchHistoryRef.current.push({ cents: centsFromRoot, time: now })
+
+    // Trim old samples
+    const cutoff = now - VIBRATO_WINDOW_MS
+    pitchHistoryRef.current = pitchHistoryRef.current.filter((s) => s.time > cutoff)
+
+    const samples = pitchHistoryRef.current
+    if (samples.length < 10) return
+
+    // Detect oscillations: count direction changes
+    let dirChanges = 0
+    let minCents = samples[0].cents
+    let maxCents = samples[0].cents
+    let lastDir = 0
+
+    for (let i = 1; i < samples.length; i++) {
+      const diff = samples[i].cents - samples[i - 1].cents
+      minCents = Math.min(minCents, samples[i].cents)
+      maxCents = Math.max(maxCents, samples[i].cents)
+      const dir = diff > 0 ? 1 : diff < 0 ? -1 : 0
+      if (dir !== 0 && dir !== lastDir) {
+        dirChanges++
+        lastDir = dir
+      }
+    }
+
+    const range = maxCents - minCents
+    const hasVibrato =
+      dirChanges >= VIBRATO_MIN_OSCILLATIONS * 2 &&
+      range >= VIBRATO_MIN_RANGE_CENTS &&
+      range <= VIBRATO_MAX_RANGE_CENTS
+
+    setVibratoDetected(hasVibrato)
+  }, [pitch, isVibrato, current])
+
+  // Reset vibrato state on exercise change
+  useEffect(() => {
+    setVibratoDetected(false)
+    pitchHistoryRef.current = []
+  }, [current?.id])
+
+  // Hold timer logic
+  useEffect(() => {
+    const shouldHold = isOnTarget || (isVibrato && vibratoDetected)
+
+    if (shouldHold && current?.status === 'active') {
+      if (holdStartRef.current === null) {
+        holdStartRef.current = performance.now()
+      }
+
+      const animate = () => {
+        if (holdStartRef.current === null) return
+        const elapsed = performance.now() - holdStartRef.current
+        const progress = Math.min(1, elapsed / HOLD_DURATION_MS)
+        setHoldProgress(progress)
+
+        if (progress >= 1) {
+          completeCurrentExercise(currentCents ?? 0)
+          holdStartRef.current = null
+          setHoldProgress(0)
+          // Sequence mode: walk into the next exercise after a short beat so
+          // the singer feels the phrase rather than punching "Próximo".
+          const set = exerciseSet
+          if (autoAdvance && set && set.currentIndex < set.exercises.length - 1) {
+            setTimeout(() => nextExercise(), 450)
+          }
+          return
+        }
+        holdRafRef.current = requestAnimationFrame(animate)
+      }
+      holdRafRef.current = requestAnimationFrame(animate)
+    } else {
+      holdStartRef.current = null
+      setHoldProgress(0)
+      cancelAnimationFrame(holdRafRef.current)
+    }
+
+    return () => cancelAnimationFrame(holdRafRef.current)
+  }, [isOnTarget, vibratoDetected, isVibrato, current?.status, current?.id, completeCurrentExercise, nextExercise, exerciseSet, currentCents, autoAdvance])
+
+  if (!exerciseSet || !current) return null
+
+  const isLast = exerciseSet.currentIndex >= exerciseSet.exercises.length - 1
+  const allDone = exerciseSet.exercises.every((e) => e.status === 'completed')
+
+  const handleSkip = () => {
+    completeCurrentExercise(999)
+    if (!isLast) {
+      setTimeout(() => nextExercise(), 300)
+    }
+  }
+
+  const showHoldIndicator = (isOnTarget || (isVibrato && vibratoDetected)) && current.status === 'active'
+
+  return (
+    <div className="exercise-display">
+      <div className="exercise-display__header">
+        <span className="exercise-display__progress">
+          {exerciseSet.currentIndex + 1} / {exerciseSet.exercises.length}
+        </span>
+        <div className="exercise-display__octave-pill">
+          <button type="button" onClick={() => shiftOctave(-1)} aria-label="Descer oitava">−</button>
+          <span>Oitava {current.rootNote.octave}</span>
+          <button type="button" onClick={() => shiftOctave(1)} aria-label="Subir oitava">+</button>
+        </div>
+        <span className="exercise-display__interval">{formatInterval(current.intervalType)}</span>
+      </div>
+
+      <DroneControl frequency={current.rootNote.frequency} />
+
+      <div className="exercise-display__notes">
+        <button className="exercise-display__note exercise-display__note--playable" onClick={playRoot}>
+          <span className="label">Raiz (Tom)</span>
+          <span className="note">{current.rootNote.name}{current.rootNote.octave}</span>
+          <span className="play-hint">Tocar</span>
+        </button>
+
+        {!isVibrato && (
+          <button className="exercise-display__note exercise-display__note--playable exercise-display__note--chord" onClick={playChord}>
+            <span className="label">Junção</span>
+            <span className="note">♪♪</span>
+            <span className="play-hint">Ouvir os dois</span>
+          </button>
+        )}
+
+        <button
+          className={`exercise-display__note exercise-display__note--playable ${isOnTarget || (isVibrato && vibratoDetected) ? 'on-target' : ''}`}
+          onClick={playTarget}
+        >
+          <span className="label">{isVibrato ? 'Vibrato' : 'Alvo'}</span>
+          <span className="note">
+            {isVibrato ? `${current.rootNote.name}${current.rootNote.octave}~` : `${current.targetNote.name}${current.targetNote.octave}`}
+          </span>
+          <span className="play-hint">Tocar</span>
+        </button>
+      </div>
+
+      {/* Wrong-octave hint: pitch class matches but singer is too far up/down */}
+      {!isVibrato && isPitchClassMatch && !inAcceptableOctave && (
+        <div className="octave-hint">
+          {octaveDelta > 0 ? '↓' : '↑'}
+          <span>
+            Voz {Math.abs(octaveDelta)} oitava{Math.abs(octaveDelta) > 1 ? 's' : ''}
+            {octaveDelta > 0 ? ' acima' : ' abaixo'} do alvo
+          </span>
+        </div>
+      )}
+
+      {/* Right-octave-class hint: matched pitch class, 1 octave off — still accepted */}
+      {!isVibrato && isPitchClassMatch && inAcceptableOctave && octaveDelta !== 0 && (
+        <div className="octave-hint octave-hint--soft">
+          <span>Nota certa — {octaveDelta > 0 ? '1 oitava acima' : '1 oitava abaixo'}</span>
+        </div>
+      )}
+
+      {showHoldIndicator && (
+        <div className="hold-progress">
+          <div className="hold-progress__bar">
+            <div className="hold-progress__fill" style={{ width: `${holdProgress * 100}%` }} />
+          </div>
+          <span className="hold-progress__label">Segure a nota...</span>
+        </div>
+      )}
+
+      <div className="exercise-display__actions">
+        {current.status === 'active' ? (
+          <button className="btn btn--secondary" onClick={handleSkip}>
+            Pular
+          </button>
+        ) : !isLast ? (
+          <button className="btn btn--primary" onClick={() => nextExercise()}>
+            Próximo exercício
+          </button>
+        ) : null}
+
+        <label className="auto-advance-toggle" title="Avançar automaticamente quando completar">
+          <input
+            type="checkbox"
+            checked={autoAdvance}
+            onChange={(e) => setAutoAdvance(e.target.checked)}
+          />
+          Sequência
+        </label>
+      </div>
+
+      {allDone && (
+        <div className="exercise-display__done">
+          Exercícios completos!
+        </div>
+      )}
+
+      <div className="exercise-display__history">
+        {exerciseSet.exercises.map((ex, i) => (
+          <button
+            key={ex.id}
+            type="button"
+            className={`history-item history-item--${ex.status}` + (i === exerciseSet.currentIndex ? ' history-item--current' : '')}
+            onClick={() => jumpToExercise(i)}
+          >
+            <span>{formatInterval(ex.intervalType)}</span>
+            {ex.status === 'completed' && (
+              <span className="history-item__cents">
+                {ex.bestCentsOffset !== null && ex.bestCentsOffset < 900
+                  ? `${ex.bestCentsOffset > 0 ? '+' : ''}${ex.bestCentsOffset.toFixed(0)}c`
+                  : 'pulou'}
+              </span>
+            )}
+            {i === exerciseSet.currentIndex && ex.status === 'active' && (
+              <span className="history-item__current-mark">◀</span>
+            )}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function formatInterval(type: string): string {
+  const labels: Record<string, string> = {
+    unison: 'Unissono',
+    minor_second: '2a menor',
+    major_second: '2a maior',
+    minor_third: '3a menor',
+    major_third: '3a maior',
+    perfect_fourth: '4a justa',
+    tritone: 'Tritono',
+    perfect_fifth: '5a justa',
+    minor_sixth: '6a menor',
+    major_sixth: '6a maior',
+    minor_seventh: '7a menor',
+    major_seventh: '7a maior',
+    octave: 'Oitava',
+    vibrato: 'Vibrato',
+  }
+  return labels[type] ?? type
+}
